@@ -53,3 +53,6 @@ jobs:
             $errors | Format-List
             exit 1
           }
+      - name: Validate Windows installer package contract
+        shell: powershell
+        run: .\Windows\Install.ps1 -ValidateOnly

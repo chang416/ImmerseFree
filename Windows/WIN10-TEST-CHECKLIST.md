@@ -133,7 +133,7 @@ where.exe pwsh                  # 有輸出代表有裝
 |---|---|
 | SmartScreen | 可能跳「Windows 已保護您的電腦」。按「其他資訊 → 仍要執行」後應可繼續。記下有沒有跳。 |
 | 安裝目錄 | `%LOCALAPPDATA%\ImmerseFree` 下有 `Bridge\`、`Extension\`、`Start-Bridge.ps1`、`Start-Bridge.vbs`、`version.txt` |
-| `version.txt` | 內容為 `ImmerseFree 0.7.0` |
+| `version.txt` | 內容為 `ImmerseFree <版本號>`，且版本號與 `Extension\manifest.json` 相同 |
 | 登入捷徑 | `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\ImmerseFree Bridge.lnk` 存在，目標是 `wscript.exe` |
 | 服務起來了 | 視窗印出「本機 Bridge 已啟動：http://127.0.0.1:27843」 |
 | 手動確認 | `Invoke-RestMethod http://127.0.0.1:27843/health` 回 `ok : True` |

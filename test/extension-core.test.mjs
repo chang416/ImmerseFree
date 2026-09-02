@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { normalizePdfSource, pdfFetchCandidates } from "../Extension/core/pdf-source.js";
@@ -26,6 +27,34 @@ test("provider defaults use the current official OpenCode Zen endpoint", () => {
 test("developer support copy is available in both interface languages", () => {
   assert.equal(i18nCore.translate("支持開發者", "en"), "Support the developer");
   assert.match(i18nCore.translate("我是一名大學生。維護這類開源專案最大的負擔，是軟體與 AI 服務昂貴的訂閱費。如果你願意支持 ImmerseFree，可以透過 Buy Me a Coffee 小額贊助。贊助完全自願，也不會解鎖額外功能。", "en"), /university student/);
+});
+
+test("interface language follows the browser and can be overridden", () => {
+  assert.equal(i18nCore.resolveLanguage("auto", "en-US"), "en");
+  assert.equal(i18nCore.resolveLanguage("auto", "fr-FR"), "en");
+  assert.equal(i18nCore.resolveLanguage("auto", "zh-TW"), "zh-Hant");
+  assert.equal(i18nCore.resolveLanguage("en", "zh-TW"), "en");
+});
+
+test("English dictionary covers all static interface text", async () => {
+  const files = ["popup.html", "options.html", "../reader/pdf.html"];
+  const missing = [];
+  for (const file of files) {
+    const html = (await readFile(new URL(`../Extension/ui/${file}`, import.meta.url), "utf8"))
+      .replace(/<script\b[\s\S]*?<\/script>/gi, "")
+      .replace(/<style\b[\s\S]*?<\/style>/gi, "");
+    const values = [
+      ...[...html.matchAll(/>([^<>]+)</g)].map((match) => match[1]),
+      ...[...html.matchAll(/\b(?:placeholder|title|aria-label|label)="([^"]+)"/g)].map((match) => match[1])
+    ];
+    for (const value of values) {
+      const text = value.replace(/\s+/g, " ").trim();
+      if (/[\p{Script=Han}]/u.test(text) && i18nCore.translate(text, "en") === null) {
+        missing.push(`${file}: ${text}`);
+      }
+    }
+  }
+  assert.deepEqual([...new Set(missing)], []);
 });
 
 test("settings sanitize providers, local bridge URLs, keys and limits", () => {

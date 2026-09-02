@@ -32,7 +32,7 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch { }
 
 $ProductName = 'ImmerseFree'
-$ProductVersion = '0.7.0'
+$ProductVersion = $null
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $LocalAppData = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else {
     [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
@@ -117,9 +117,22 @@ function Assert-Package([string]$PackageRoot) {
     if ([string]$manifest.name -ne $ProductName) {
         throw "擴充功能名稱必須是 $ProductName。"
     }
-    if ([string]$manifest.version -ne $ProductVersion) {
-        throw "擴充功能版本必須是 $ProductVersion。"
+    $manifestVersion = [string]$manifest.version
+    if ($manifestVersion -notmatch '^\d+\.\d+\.\d+$') {
+        throw "擴充功能版本格式無效：$manifestVersion"
     }
+    $packageJsonPath = Join-Path $PackageRoot 'package.json'
+    if (Test-Path -LiteralPath $packageJsonPath) {
+        try {
+            $packageMetadata = Get-Content -LiteralPath $packageJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        } catch {
+            throw "無法讀取 package.json：$($_.Exception.Message)"
+        }
+        if ([string]$packageMetadata.version -ne $manifestVersion) {
+            throw "安裝包版本不一致：manifest.json 是 $manifestVersion，package.json 是 $($packageMetadata.version)。"
+        }
+    }
+    $script:ProductVersion = $manifestVersion
 
     $ocrScript = Join-RelativePath $PackageRoot 'Bridge\ocr\ocr.ps1'
     if (-not (Test-Path -LiteralPath $ocrScript)) {
@@ -321,7 +334,13 @@ function Find-Browser([string]$CommandName, [string[]]$Candidates) {
 
 function Open-BrowserSetup {
     $extension = Join-Path $InstallRoot 'Extension'
-    Start-Process -FilePath 'explorer.exe' -ArgumentList @($extension) | Out-Null
+    Start-Process -FilePath 'explorer.exe' -ArgumentList @("`"$extension`"") | Out-Null
+    try {
+        Set-Clipboard -Value $extension -ErrorAction Stop
+        Write-Ok '已把擴充功能資料夾路徑複製到剪貼簿。'
+    } catch {
+        Write-Warn '無法自動複製路徑；請使用下方顯示的完整路徑。'
+    }
 
     $chrome = Find-Browser 'chrome.exe' @(
         (Join-IfValue $env:LOCALAPPDATA 'Google\Chrome\Application\chrome.exe'),
@@ -347,7 +366,9 @@ function Open-BrowserSetup {
         Write-Warn '找不到 Edge；請手動開啟 edge://extensions。'
     }
 
-    Write-Host "`n請在每個瀏覽器設定檔開啟開發人員模式，按「載入未封裝項目」，選擇：" -ForegroundColor White
+    Write-Host "`n請在每個瀏覽器設定檔開啟開發人員模式，再按「載入未封裝項目」。" -ForegroundColor White
+    Write-Host '在選擇資料夾的視窗按 Ctrl + L、Ctrl + V、Enter，再按「選取資料夾」。' -ForegroundColor White
+    Write-Host 'In the folder picker, press Ctrl + L, Ctrl + V, Enter, then Select Folder.' -ForegroundColor White
     Write-Host "  $extension" -ForegroundColor White
 }
 

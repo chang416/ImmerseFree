@@ -11,8 +11,11 @@ const safariRoot = path.join(root, "macOS", "Safari", "ImmerseFree Extension", "
 const readJson = async (file) => JSON.parse(await readFile(file, "utf8"));
 const chromiumManifest = await readJson(path.join(chromiumRoot, "manifest.json"));
 const safariManifest = await readJson(path.join(safariRoot, "manifest.json"));
+const packageMetadata = await readJson(path.join(root, "package.json"));
 const chromiumOptionsHtml = await readFile(path.join(chromiumRoot, "ui", "options.html"), "utf8");
 const readme = await readFile(path.join(root, "README.md"), "utf8");
+const windowsInstaller = await readFile(path.join(root, "Windows", "Install.ps1"), "utf8");
+const safariProject = await readFile(path.join(root, "macOS", "Safari", "ImmerseFree.xcodeproj", "project.pbxproj"), "utf8");
 
 assert.match(chromiumOptionsHtml, /https:\/\/opencode\.ai\/zen\/v1/, "Options UI must use the current OpenCode Zen endpoint");
 assert.equal(chromiumOptionsHtml.includes("opencode.ai/inference/openai/v1"), false, "Options UI must not expose the retired OpenCode endpoint");
@@ -25,6 +28,26 @@ assert.match(
   readme,
   /Command \+ Shift \+ G/,
   "README must explain how to paste the hidden macOS extension path into Chrome's folder picker"
+);
+assert.match(readme, /built-in English interface/i, "README must clearly introduce the built-in English interface");
+assert.match(readme, /users worldwide/i, "README must state that ImmerseFree is intended for worldwide use");
+
+assert.equal(chromiumManifest.version, packageMetadata.version, "Chromium and package versions must match");
+assert.equal(safariManifest.version, packageMetadata.version, "Safari extension and package versions must match");
+assert.equal(
+  /\$ProductVersion\s*=\s*['\"]\d+\.\d+\.\d+['\"]/i.test(windowsInstaller),
+  false,
+  "Windows installer must derive its version from the package manifest instead of hardcoding it"
+);
+assert.match(windowsInstaller, /\$script:ProductVersion\s*=\s*\$manifestVersion/i, "Windows installer must use the validated manifest version");
+assert.match(windowsInstaller, /Set-Clipboard/, "Windows installer must copy the installed extension path to the clipboard");
+assert.match(readme, /Ctrl \+ L/, "README must explain where Windows users paste the installed extension path");
+const safariMarketingVersions = [...safariProject.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map((match) => match[1]);
+assert.ok(safariMarketingVersions.length > 0, "Safari project must declare MARKETING_VERSION");
+assert.deepEqual(
+  [...new Set(safariMarketingVersions)],
+  [packageMetadata.version],
+  "Every Safari target must use the release package version"
 );
 
 for (const file of ["Install ImmerseFree.command", "Enable in another Chrome profile.command"]) {

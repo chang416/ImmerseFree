@@ -1,5 +1,11 @@
 # Changelog｜版本紀錄
 
+## 0.7.3 — 2026-09-02
+
+Fixed a Windows installer version check that could reject releases newer than 0.7.0, and synchronized the Safari app version with the browser manifests. The Windows installer now derives its version from the packaged manifest, safely opens paths containing spaces, and copies the permanent extension path for the browser folder picker. CI validates the real Windows package contract. The README now clearly introduces the complete English interface and worldwide language support.
+
+修正 Windows 安裝程式可能拒絕 0.7.0 之後版本的版本檢查，並同步 Safari App 與瀏覽器 manifest 的版本。Windows 安裝程式現在會直接讀取發行包內的 manifest 版本、正確開啟含空格的路徑，並複製永久擴充功能路徑供瀏覽器選取。CI 也會實際驗證 Windows 安裝包契約。README 另外明確介紹完整英文介面與全球語言支援。
+
 ## 0.7.2 — 2026-09-02
 
 Clarified the macOS Chrome／Edge installation flow. The installer now copies the permanent extension path to the clipboard and explains exactly where to paste it with Command + Shift + G. The bilingual guide also explains why the downloaded `Extension` folder and installed `Chrome Extension` folder have different names.

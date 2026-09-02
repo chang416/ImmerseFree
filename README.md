@@ -8,9 +8,13 @@ ImmerseFree is an open-source bilingual browser translator for web pages, select
 
 ImmerseFree 是一套開源的瀏覽器雙語翻譯工具，可翻譯整個網頁、反白文字、滑鼠懸停段落、輸入欄位與 PDF。它會保留原文，並把譯文插在原文下方。支援 Windows 與 macOS，並提供 Chrome、Microsoft Edge 與 Safari 的安裝方式。
 
-The interface supports English and Traditional Chinese and follows the browser language by default. No API key or private login credential is included in this repository.
+ImmerseFree includes a complete built-in English interface as well as Traditional Chinese. It follows your browser language on first launch, and you can switch languages at any time in **Settings → Interface language**. It is made for users worldwide, not only for people in Taiwan, and can translate among English, Traditional Chinese, Simplified Chinese, Japanese, Korean, and Thai. Translation-provider availability and quotas may vary by region.
 
-介面支援英文與繁體中文，預設跟隨瀏覽器語言。本 repository 不包含任何 API key 或私人登入憑證。
+ImmerseFree 內建完整的英文與繁體中文介面。第一次開啟時會跟隨瀏覽器語言，也可以隨時到 **設定 → 介面語言** 切換。它不是只提供給台灣使用者；世界各地的使用者都能使用，並可在英文、繁體中文、簡體中文、日文、韓文與泰文之間翻譯。各翻譯服務在不同地區的供應狀況與額度可能不同。
+
+No API key or private login credential is included in this repository.
+
+本 repository 不包含任何 API key 或私人登入憑證。
 
 > [!IMPORTANT]
 > This is an open-source MVP. Chrome and Edge currently require one manual **Load unpacked** step per browser profile. Safari requires Xcode and your own Apple signing team. These browser security restrictions cannot be bypassed by an installer.
@@ -38,14 +42,18 @@ If a release asset is temporarily unavailable, click the green **Code** button o
 ### Windows — Chrome or Edge｜Windows — Chrome 或 Edge
 
 1. Right-click the downloaded ZIP and choose **Extract All**. Open the extracted folder, open `Windows`, then double-click **`Install ImmerseFree.cmd`**.
-2. The installer copies the required files, starts the local Bridge, configures it to start when you sign in, and opens the browser extension page plus the correct extension folder.
-3. In Chrome, turn on **Developer mode** at the top right, click **Load unpacked**, and select the `Extension` folder opened by the installer.
-4. In Edge, turn on **Developer mode** in the left sidebar, click **Load unpacked**, and select the same `Extension` folder.
+2. The installer copies the required files to a permanent folder, starts the local Bridge, configures it to start when you sign in, opens the browser extension page, and copies the installed extension path to the clipboard.
+3. In Chrome, turn on **Developer mode** at the top right and click **Load unpacked**. In the folder picker, press **Ctrl + L**, press **Ctrl + V** to paste the copied path, press Enter, then click **Select Folder**.
+4. In Edge, turn on **Developer mode** in the left sidebar, click **Load unpacked**, and use the same **Ctrl + L** steps.
+
+The permanent Windows folder is `%LOCALAPPDATA%\ImmerseFree\Extension`. You do not need to search inside the extracted download after the installer finishes. If the path was not copied, paste `%LOCALAPPDATA%\ImmerseFree\Extension` into File Explorer's address bar and press Enter.
 
 1. 在下載的 ZIP 上按右鍵，選擇 **全部解壓縮**。打開解壓後的資料夾，再打開 `Windows`，接著雙擊 **`Install ImmerseFree.cmd`**。
-2. 安裝程式會複製需要的檔案、啟動本機 Bridge、設定登入 Windows 時自動啟動，並替你開啟瀏覽器擴充功能頁面與正確的擴充功能資料夾。
-3. 在 Chrome 右上角打開 **開發人員模式**，按 **載入未封裝項目**，選擇安裝程式剛剛開啟的 `Extension` 資料夾。
-4. 在 Edge 左側打開 **開發人員模式**，按 **載入解壓縮的擴充功能**，選擇同一個 `Extension` 資料夾。
+2. 安裝程式會把需要的檔案複製到永久資料夾、啟動本機 Bridge、設定登入 Windows 時自動啟動、開啟瀏覽器擴充功能頁面，並把安裝後的擴充功能路徑複製到剪貼簿。
+3. 在 Chrome 右上角打開 **開發人員模式**，按 **載入未封裝項目**。在選擇資料夾的視窗按 **Ctrl + L**，再按 **Ctrl + V** 貼上路徑，按 Enter，最後按 **選取資料夾**。
+4. 在 Edge 左側打開 **開發人員模式**，按 **載入解壓縮的擴充功能**，再用相同的 **Ctrl + L** 步驟。
+
+Windows 的永久安裝位置是 `%LOCALAPPDATA%\ImmerseFree\Extension`。安裝完成後不需要回到解壓縮的下載資料夾裡尋找。如果路徑沒有成功複製，請把 `%LOCALAPPDATA%\ImmerseFree\Extension` 貼到檔案總管的網址列，再按 Enter。
 
 If Windows shows **Windows protected your PC**, click **More info → Run anyway**. This warning can appear because the downloaded ZIP is not code-signed. You may instead right-click the ZIP before extracting it, choose **Properties**, select **Unblock**, and apply the change.
 
@@ -107,9 +115,9 @@ With page translation enabled, ImmerseFree keeps each original paragraph and pla
 - **Episode study:** collect useful vocabulary and sentence patterns from the current episode.
 - **影集學習**：整理目前單集裡值得學習的單字與句型。
 
-These entries are already visible in the extension but remain disabled as **Coming soon**. They are not included in version 0.7.2.
+These entries are already visible in the extension but remain disabled as **Coming soon**. They are not included in version 0.7.3.
 
-這些入口已顯示在擴充功能中，但目前仍為停用的 **Coming soon** 狀態，不包含在 0.7.2 版內。
+這些入口已顯示在擴充功能中，但目前仍為停用的 **Coming soon** 狀態，不包含在 0.7.3 版內。
 
 ## Support the developer｜支持開發者
 

@@ -2,9 +2,9 @@
   "manifest_version": 3,
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA44jPcG3Jb8OOOZXNIJ0k5aPGhXuUrH6vdcfzG/hKid+xktSGuRyI8umes8YGBmxLtpA2iH4gPiULT5z/Vdb9CsmolUfNSpti9wMzIYVunJIfePUPEuWO436k2nwU+uwOoZ21j5NmnmUHgoXVRmQAE4XN9nbWqxILm20r3uXE/cF7G21yo+ym4I4jTuDcQXKgNf8mN7fyPNJRcPrKSdM4M/JaFvrDVsgyEQJNbLHt2IT8ncRijTgHMTnz2DF5Ige4S41Id+WauPjE2O7GZM3RwuUfqLVwYWHxIYBfUhxT6Uv0EKtFN3XoU3RLP+npS/I9C1AI3yTF9McUhPNKELJZnwIDAQAB",
   "name": "ImmerseFree",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Bilingual translation for web pages, selected text, hovered paragraphs and PDFs.",
-  "version_name": "0.7.2",
+  "version_name": "0.7.3",
   "permissions": [
     "activeTab",
     "contextMenus",
