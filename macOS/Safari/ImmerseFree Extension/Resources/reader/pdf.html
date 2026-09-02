@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ImmerseFree：PDF 翻譯</title>
+  <link rel="stylesheet" href="../vendor/phosphor/phosphor.css">
+  <link rel="stylesheet" href="pdf.css">
+</head>
+<body>
+  <header class="toolbar">
+    <div class="brand"><img src="../icons/icon-128.png" width="34" height="34" alt=""><div><strong>ImmerseFree</strong><span id="document-name">PDF 翻譯</span></div></div>
+    <div class="toolbar-actions">
+      <label class="model-label">服務<select id="provider"><option value="antigravity">Antigravity</option><option value="opencode">OpenCode Free</option><option value="gemini">Gemini API</option></select></label>
+      <input id="file-input" type="file" accept="application/pdf,.pdf" hidden>
+      <button id="choose-file" class="secondary" type="button"><i class="ph ph-upload-simple"></i>選擇 PDF</button>
+      <button id="view-mode" class="secondary" type="button">只看譯文</button>
+      <button id="translate-all" type="button" disabled><i class="ph ph-translate"></i>翻譯整份</button>
+    </div>
+  </header>
+
+  <section id="empty-state" class="empty-state">
+    <i class="ph ph-file-pdf"></i>
+    <h1>開啟 PDF 文件</h1>
+    <p>拖入本機 PDF，或從擴充功能開啟目前的 PDF。</p>
+    <button id="empty-choose" type="button">選擇 PDF</button>
+  </section>
+
+  <main id="pages" aria-live="polite"></main>
+  <footer class="progress-bar" id="progress" hidden><div><span id="progress-text"></span><progress id="document-progress" max="1" value="0"></progress></div><button id="cancel" type="button">停止</button></footer>
+  <script type="module" src="../ui/i18n.js"></script>
+  <script type="module" src="pdf.js"></script>
+</body>
+</html>

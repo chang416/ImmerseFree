@@ -1,0 +1,33 @@
+# Local secrets — never commit an API key.
+.env
+*.local
+
+# Bundled runtimes are deliberately NOT in this repository: the macOS Node
+# binary alone is ~115 MB, over GitHub's 100 MB hard limit. Both installers use
+# the Node.js already on your machine.
+Runtime/
+node.exe
+
+# Build and install output
+dist/
+build/
+*.zip
+
+# Xcode
+macOS/Safari/**/xcuserdata/
+macOS/Safari/**/*.xcworkspace/xcuserdata/
+DerivedData/
+*.xcuserstate
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+
+# Python (helper scripts)
+__pycache__/
+*.pyc

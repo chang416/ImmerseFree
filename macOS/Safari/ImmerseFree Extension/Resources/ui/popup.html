@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ImmerseFree</title>
+  <link rel="stylesheet" href="../vendor/phosphor/phosphor.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="app-header">
+      <div class="brand">
+        <img src="../icons/icon-128.png" width="34" height="34" alt="">
+        <div>
+          <h1>ImmerseFree</h1>
+          <p id="provider-state">讀取翻譯模型</p>
+        </div>
+      </div>
+      <button id="open-settings" class="icon-button" type="button" aria-label="開啟設定"><i class="ph ph-gear-six"></i></button>
+    </header>
+
+    <section class="control-panel" aria-label="翻譯設定">
+      <label class="model-field">
+        <span>模型</span>
+        <select id="provider">
+          <option value="antigravity::gemini-3.6-flash-low">Gemini 3.6 Flash Low（Antigravity）</option>
+          <option value="opencode::mimo-v2.5-free">MiMo 2.5 Free（OpenCode）</option>
+          <option value="gemini::gemini-3.5-flash-lite">Gemini 3.5 Flash Lite（API）</option>
+        </select>
+      </label>
+      <div class="language-row">
+        <label>
+          <span>原文</span>
+          <select id="source-language">
+            <option value="auto">自動偵測</option>
+            <option value="en">英文</option>
+            <option value="ja">日文</option>
+            <option value="ko">韓文</option>
+            <option value="th">泰文</option>
+            <option value="zh-Hans">簡體中文</option>
+            <option value="zh-Hant">繁體中文</option>
+          </select>
+        </label>
+        <button id="swap-languages" class="swap-button" type="button" aria-label="交換語言"><i class="ph ph-arrows-left-right"></i></button>
+        <label>
+          <span>譯文</span>
+          <select id="target-language">
+            <option value="zh-Hant">繁中（台灣）</option>
+            <option value="zh-Hans">簡體中文</option>
+            <option value="en">英文</option>
+            <option value="ja">日文</option>
+            <option value="ko">韓文</option>
+            <option value="th">泰文</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <button id="translate-page" class="primary-action" type="button">
+      <i class="ph ph-translate"></i>
+      <span>翻譯這個網頁</span>
+      <i class="ph ph-arrow-right"></i>
+    </button>
+
+    <section id="page-progress" class="page-progress" aria-live="polite" hidden>
+      <div><span id="page-progress-text">準備翻譯</span><b id="page-progress-count"></b></div>
+      <progress id="page-progress-meter" max="1" value="0"></progress>
+    </section>
+
+    <section class="tools" aria-label="翻譯工具">
+      <button id="translate-pdf" class="tool-button" type="button">
+        <i class="ph ph-file-pdf"></i><span>PDF 文件</span>
+      </button>
+      <button id="toggle-selection" class="tool-button tool-button-mode" type="button" aria-pressed="false">
+        <i class="ph ph-selection"></i>
+        <span class="tool-copy"><strong>反白文字</strong><small>拖曳選取，放開就翻譯</small></span>
+        <b id="selection-state">關</b>
+      </button>
+      <button id="toggle-hover" class="tool-button tool-button-mode" type="button" aria-pressed="false">
+        <i class="ph ph-cursor-click"></i>
+        <span class="tool-copy"><strong>懸停段落</strong><small>不用反白，停留 0.7 秒</small></span>
+        <b id="hover-state">關</b>
+      </button>
+      <button id="open-more-settings" class="tool-button" type="button">
+        <i class="ph ph-sliders-horizontal"></i><span>翻譯品質</span>
+      </button>
+    </section>
+
+    <section class="video-control coming-soon" id="ai-subtitle-row">
+      <div>
+        <i class="ph ph-subtitles"></i>
+        <span class="control-copy"><strong>AI 字幕</strong><small>使用模型翻譯影片字幕</small></span>
+      </div>
+      <button id="toggle-ai-subtitles" class="compact-button" type="button" aria-pressed="false" disabled>Coming soon</button>
+    </section>
+
+    <section class="video-control coming-soon" id="dual-subtitle-row">
+      <div>
+        <i class="ph ph-closed-captioning"></i>
+        <span class="control-copy"><strong>雙軌字幕</strong><small id="dual-subtitle-note">使用 Netflix、Disney+ 原有字幕軌</small></span>
+      </div>
+      <button id="toggle-dual-subtitles" class="compact-button" type="button" aria-pressed="false" disabled>Coming soon</button>
+    </section>
+
+    <section class="video-control coming-soon" id="study-row">
+      <div>
+        <i class="ph ph-graduation-cap"></i>
+        <span class="control-copy"><strong>影集學習</strong><small id="study-note">整理這一集的單字與句型</small></span>
+      </div>
+      <button id="open-study" class="compact-button" type="button" disabled>Coming soon</button>
+    </section>
+
+
+    <output id="status" role="status" aria-live="polite"></output>
+  </main>
+  <script type="module" src="i18n.js"></script>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

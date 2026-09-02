@@ -1,0 +1,82 @@
+{
+  "manifest_version": 3,
+  "name": "ImmerseFree",
+  "version": "0.7.0",
+  "description": "Bilingual translation for web pages, selected text, hovered paragraphs and PDFs.",
+  "version_name": "0.7.0",
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*",
+    "https://opencode.ai/*",
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "ui/popup.html",
+    "default_title": "ImmerseFree",
+    "default_icon": {
+      "16": "icons/safari-toolbar-16.png",
+      "19": "icons/safari-toolbar-19.png",
+      "32": "icons/safari-toolbar-32.png",
+      "38": "icons/safari-toolbar-38.png"
+    }
+  },
+  "icons": {
+    "48": "icons/safari-extension-48.png",
+    "64": "icons/safari-extension-64.png",
+    "96": "icons/safari-extension-96.png",
+    "128": "icons/safari-extension-128.png",
+    "256": "icons/safari-extension-256.png",
+    "512": "icons/safari-extension-512.png"
+  },
+  "options_page": "ui/options.html",
+  "commands": {
+    "translate-page": {
+      "suggested_key": {
+        "default": "Alt+Shift+B",
+        "mac": "MacCtrl+Shift+B"
+      },
+      "description": "翻譯目前網頁"
+    },
+    "translate-selection": {
+      "suggested_key": {
+        "default": "Alt+Shift+T",
+        "mac": "MacCtrl+Shift+T"
+      },
+      "description": "翻譯選取文字"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "core/i18n-core.js",
+        "core/page-translation-ui.js",
+        "core/page-translation-cache.js",
+        "core/language-core.js",
+        "core/shared.js",
+        "content/page-translator.js",
+        "content/interaction-translator.js",
+        "content/main.js"
+      ],
+      "css": [
+        "content/content.css"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ]
+}

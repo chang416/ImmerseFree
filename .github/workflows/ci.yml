@@ -1,0 +1,55 @@
+name: Verify
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run verify
+
+  safari:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Safari app without signing
+        run: >-
+          xcodebuild
+          -project "macOS/Safari/ImmerseFree.xcodeproj"
+          -scheme ImmerseFree
+          -configuration Release
+          -destination "platform=macOS"
+          -derivedDataPath "$RUNNER_TEMP/immersefree"
+          CODE_SIGNING_ALLOWED=NO
+          clean build
+
+  powershell:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse Windows PowerShell scripts
+        shell: powershell
+        run: |
+          $errors = @()
+          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$parseErrors) | Out-Null
+            $errors += $parseErrors
+          }
+          if ($errors.Count) {
+            $errors | Format-List
+            exit 1
+          }

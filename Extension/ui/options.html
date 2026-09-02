@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ImmerseFree 設定</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <header class="page-header">
+      <img src="../icons/icon-128.png" width="44" height="44" alt="">
+      <div><h1>ImmerseFree</h1><p>翻譯與模型設定</p></div>
+    </header>
+
+    <form id="settings-form">
+      <section>
+        <h2>翻譯服務</h2>
+        <label>
+          使用服務
+          <select id="provider" name="provider">
+            <option value="antigravity">Antigravity CLI：Gemini 3.6 Flash Low</option>
+            <option value="opencode">OpenCode：免費模型</option>
+            <option value="gemini">Gemini API：3.5 Flash Lite</option>
+            <option value="custom">自訂 API（OpenAI 相容）</option>
+          </select>
+        </label>
+
+        <div id="antigravity-fields" class="provider-fields" hidden>
+          <label>
+            Antigravity 模型
+            <input id="antigravityModel" name="antigravityModel" value="gemini-3.6-flash-low" spellcheck="false">
+          </label>
+          <label>
+            本機模型服務
+            <input id="bridgeBaseUrl" name="bridgeBaseUrl" value="http://127.0.0.1:27843" inputmode="url" spellcheck="false">
+          </label>
+          <p class="hint">需先登入 Antigravity CLI。翻譯會使用該帳戶的額度，不會使用 Gemini API key。</p>
+        </div>
+
+        <div id="opencode-fields" class="provider-fields" hidden>
+          <label>
+            OpenCode token／API key（留空時使用本機 OpenCode CLI）
+            <input id="opencodeApiKey" name="opencodeApiKey" type="password" autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            免費模型
+            <select id="opencodeModel" name="opencodeModel">
+              <option value="mimo-v2.5-free">MiMo V2.5 Free</option>
+            </select>
+          </label>
+          <button id="refresh-opencode-models" type="button">更新免費模型清單</button>
+          <label>
+            API base URL
+            <input id="opencodeBaseUrl" name="opencodeBaseUrl" value="https://opencode.ai/zen/v1" inputmode="url" spellcheck="false">
+          </label>
+          <p class="hint">只顯示目前仍供應且輸入、輸出成本皆為 0 的模型。免費服務可能有速率限制，請勿翻譯機密內容。</p>
+        </div>
+
+        <div id="gemini-fields" class="provider-fields" hidden>
+          <label>
+            Gemini API keys（一行一把）
+            <textarea id="geminiApiKeys" name="geminiApiKeys" rows="5" autocomplete="off" spellcheck="false" placeholder="一行一把（用逗號或空格分隔也可以）"></textarea>
+          </label>
+          <p id="gemini-key-count" class="hint">尚未填入金鑰</p>
+          <label>
+            模型 ID
+            <input id="geminiModel" name="geminiModel" value="gemini-3.5-flash-lite" spellcheck="false">
+          </label>
+          <label>
+            API base URL
+            <input id="geminiBaseUrl" name="geminiBaseUrl" value="https://generativelanguage.googleapis.com/v1beta" inputmode="url" spellcheck="false">
+          </label>
+          <p class="hint">每次呼叫會輪替金鑰；遇到額度或金鑰錯誤會自動換下一把。若金鑰屬於同一 Google 專案，配額可能仍共用。</p>
+        </div>
+      </section>
+
+        <div id="custom-fields" class="provider-fields" hidden>
+          <label>
+            API base URL
+            <input id="customApiBaseUrl" name="customApiBaseUrl" inputmode="url" spellcheck="false" placeholder="https://api.openai.com/v1">
+          </label>
+          <label>
+            API key（本機服務如 Ollama 可留空）
+            <input id="customApiKey" name="customApiKey" type="password" autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            模型
+            <input id="customModel" name="customModel" list="custom-model-list" spellcheck="false" placeholder="gpt-4o-mini">
+          </label>
+          <datalist id="custom-model-list"></datalist>
+          <button id="fetch-custom-models" type="button">抓取這把金鑰可用的模型</button>
+          <p id="custom-model-count" class="hint">尚未抓取模型清單</p>
+          <label>
+            顯示名稱（選填，會顯示在工具列選單）
+            <input id="customApiLabel" name="customApiLabel" spellcheck="false" placeholder="例如：OpenAI、Groq、我的 Ollama">
+          </label>
+          <p class="hint">任何相容 OpenAI <code>/chat/completions</code> 介面的服務都能用：OpenAI、Groq、
+            Together、OpenRouter、DeepSeek、以及本機的 Ollama 或 LM Studio。填 base URL 到 <code>/v1</code> 為止即可。</p>
+        </div>
+
+      <section class="language-grid">
+        <h2>語言</h2>
+        <label>
+          介面語言
+          <select id="uiLanguage" name="uiLanguage">
+            <option value="auto">跟隨瀏覽器</option>
+            <option value="zh-Hant">繁體中文</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <label>
+          原文
+          <select id="sourceLanguage" name="sourceLanguage">
+            <option value="auto">自動偵測</option>
+            <option value="en">英文</option>
+            <option value="ja">日文</option>
+            <option value="ko">韓文</option>
+            <option value="th">泰文</option>
+            <option value="zh-Hans">簡體中文</option>
+          </select>
+        </label>
+        <label>
+          譯文
+          <select id="targetLanguage" name="targetLanguage">
+            <option value="zh-Hant">繁體中文（台灣）</option>
+            <option value="zh-Hans">簡體中文</option>
+            <option value="en">英文</option>
+            <option value="ja">日文</option>
+            <option value="ko">韓文</option>
+            <option value="th">泰文</option>
+          </select>
+        </label>
+      </section>
+
+      <section>
+        <h2>翻譯品質</h2>
+        <label>
+          翻譯風格
+          <select id="translationStyle" name="translationStyle">
+            <option value="natural">自然流暢</option>
+            <option value="literal">忠實原文</option>
+            <option value="academic">學術精準</option>
+          </select>
+        </label>
+        <label>
+          自訂翻譯偏好
+          <textarea id="customPrompt" name="customPrompt" rows="4" maxlength="2000" placeholder="例如：金融術語保留英文縮寫；人名不翻譯；語氣保持正式。"></textarea>
+        </label>
+      </section>
+
+
+      <section>
+        <h2>功能</h2>
+        <label class="check"><input id="pageTranslationEnabled" name="pageTranslationEnabled" type="checkbox">允許網頁雙語翻譯</label>
+        <label class="check"><input id="selectionTranslationEnabled" name="selectionTranslationEnabled" type="checkbox">反白文字後立即翻譯</label>
+        <label class="check"><input id="hoverTranslationEnabled" name="hoverTranslationEnabled" type="checkbox">滑鼠懸停段落 0.7 秒後翻譯</label>
+        <label class="check"><input id="inputTranslationEnabled" name="inputTranslationEnabled" type="checkbox">輸入框連按三次空白時翻譯</label>
+      </section>
+
+      <section>
+        <h2>設定搬家</h2>
+        <p class="hint">匯出檔會包含 API 金鑰。請妥善保管，再於另一台 Windows 或 Mac 匯入。</p>
+        <div class="transfer-actions">
+          <button id="export-settings" type="button">匯出設定</button>
+          <button id="import-settings" type="button">匯入設定</button>
+          <input id="import-file" type="file" accept="application/json,.json" hidden>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button id="save-test" type="submit">儲存並測試</button>
+        <output id="status" role="status" aria-live="polite"></output>
+      </div>
+    </form>
+    <section class="project-info">
+      <h2>支持開發者</h2>
+      <p>我是一名大學生。維護這類開源專案最大的負擔，是軟體與 AI 服務昂貴的訂閱費。如果你願意支持 ImmerseFree，可以透過 Buy Me a Coffee 小額贊助。贊助完全自願，也不會解鎖額外功能。</p>
+      <a class="support-link" href="https://buymeacoffee.com/chang416" target="_blank" rel="noopener noreferrer">前往 Buy Me a Coffee</a>
+    </section>
+  </main>
+  <script type="module" src="i18n.js"></script>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

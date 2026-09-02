@@ -1,0 +1,43 @@
+# Line endings matter here: this repository ships scripts for two platforms.
+#
+# A macOS .command file checked out with CRLF fails with a confusing
+# "bad interpreter" error, and a Windows .ps1 is happiest with CRLF. Pin both
+# so it does not depend on whoever cloned the repo and what their
+# core.autocrlf happens to be set to.
+
+* text=auto
+
+# macOS / POSIX shells — must stay LF
+*.command   text eol=lf
+*.sh        text eol=lf
+*.swift     text eol=lf
+*.plist     text eol=lf
+
+# Windows shells — must stay CRLF
+*.ps1       text eol=crlf
+*.cmd       text eol=crlf
+*.bat       text eol=crlf
+*.vbs       text eol=crlf
+
+# Web sources are LF everywhere
+*.js        text eol=lf
+*.mjs       text eol=lf
+*.json      text eol=lf
+*.html      text eol=lf
+*.css       text eol=lf
+*.md        text eol=lf
+
+# Xcode 專案檔與授權文字在 macOS 上讀寫，一律 LF
+*.pbxproj            text eol=lf
+*.storyboard         text eol=lf
+*.xcworkspacedata    text eol=lf
+*.xcscheme           text eol=lf
+*.txt                text eol=lf
+LICENSE              text eol=lf
+
+# Binary — never touch
+*.png       binary
+*.woff2     binary
+*.ico       binary
+*.icns      binary
+immersefree-ocr binary

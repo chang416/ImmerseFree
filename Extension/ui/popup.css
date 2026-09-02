@@ -1,0 +1,89 @@
+:root {
+  color-scheme: light;
+  --bg: #f2f3f1;
+  --surface: #fafaf8;
+  --surface-2: #e8eae8;
+  --ink: #202327;
+  --muted: #6f7479;
+  --line: rgba(32, 35, 39, .14);
+  --accent: #454c53;
+  --accent-hover: #353b41;
+  --accent-pressed: #282d32;
+  --danger: #744a4a;
+  font-family: "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; width: 388px; background: var(--bg); color: var(--ink); }
+button, select { font: inherit; }
+button { color: inherit; }
+.shell { display: grid; gap: 14px; padding: 17px; }
+.app-header { display: flex; align-items: center; justify-content: space-between; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand img { border-radius: 10px; box-shadow: 0 6px 18px rgba(42, 47, 52, .14); }
+h1 { margin: 0; font-size: 15px; line-height: 1.25; letter-spacing: -.01em; font-weight: 700; }
+.brand p { margin: 3px 0 0; color: var(--muted); font-size: 11px; line-height: 1.2; }
+.icon-button, .swap-button { display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; cursor: pointer; transition: background 180ms cubic-bezier(.16, 1, .3, 1), transform 180ms cubic-bezier(.16, 1, .3, 1); }
+.icon-button { width: 34px; height: 34px; font-size: 19px; }
+.icon-button:hover, .swap-button:hover { background: var(--surface-2); }
+.icon-button:active, .swap-button:active { transform: scale(.96); }
+.control-panel { padding: 13px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: 0 10px 30px rgba(42, 47, 52, .08); }
+label { display: grid; gap: 6px; min-width: 0; }
+label > span { color: var(--muted); font-size: 10px; font-weight: 650; letter-spacing: .04em; }
+select { width: 100%; height: 34px; padding: 0 30px 0 10px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: var(--surface-2); outline: none; }
+select:focus-visible, button:focus-visible { outline: 3px solid rgba(69, 76, 83, .28); outline-offset: 2px; }
+.model-field { grid-template-columns: 45px 1fr; align-items: center; }
+.language-row { display: grid; grid-template-columns: 1fr 32px 1fr; gap: 8px; align-items: end; margin-top: 11px; }
+.swap-button { width: 32px; height: 34px; color: var(--muted); }
+.primary-action { display: grid; grid-template-columns: 24px 1fr 24px; align-items: center; min-height: 48px; padding: 0 14px; border: 0; border-radius: 14px; color: #f7f7f5; background: var(--accent); font-weight: 700; cursor: pointer; box-shadow: 0 12px 30px rgba(42, 47, 52, .18); transition: background 180ms cubic-bezier(.16, 1, .3, 1), transform 180ms cubic-bezier(.16, 1, .3, 1), box-shadow 180ms cubic-bezier(.16, 1, .3, 1); }
+.primary-action i { font-size: 19px; }
+.primary-action i:last-child { justify-self: end; font-size: 16px; transition: transform 180ms cubic-bezier(.16, 1, .3, 1); }
+.primary-action:hover { background: var(--accent-hover); box-shadow: 0 15px 36px rgba(42, 47, 52, .24); transform: translateY(-1px); }
+.primary-action:hover i:last-child { transform: translateX(2px); }
+.primary-action:active { background: var(--accent-pressed); transform: scale(.99); }
+.page-progress { display: grid; gap: 8px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.page-progress[hidden] { display: none; }
+.page-progress div { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 10px; }
+.page-progress b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.page-progress progress { width: 100%; height: 6px; border: 0; border-radius: 999px; overflow: hidden; accent-color: var(--accent); }
+.page-progress progress::-webkit-progress-bar { background: var(--surface-2); }
+.page-progress progress::-webkit-progress-value { border-radius: 999px; background: var(--accent); }
+.tools { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.tool-button { position: relative; display: grid; grid-template-columns: 28px 1fr auto; align-items: center; min-height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 13px; text-align: left; color: var(--ink); background: var(--surface); cursor: pointer; transition: border-color 180ms cubic-bezier(.16, 1, .3, 1), transform 180ms cubic-bezier(.16, 1, .3, 1), background 180ms cubic-bezier(.16, 1, .3, 1); }
+.tool-button i { color: var(--accent); font-size: 20px; }
+.tool-button > span:not(.tool-copy) { font-size: 12px; font-weight: 620; white-space: nowrap; }
+.tool-button-mode { min-height: 58px; }
+.tool-copy { display: grid; gap: 2px; min-width: 0; }
+.tool-copy strong { font-size: 12px; font-weight: 650; white-space: nowrap; }
+.tool-copy small { color: var(--muted); font-size: 9px; line-height: 1.25; white-space: nowrap; }
+.tool-button b { padding: 3px 6px; border-radius: 6px; color: var(--muted); background: var(--surface-2); font-size: 9px; font-weight: 650; }
+.tool-button:hover { border-color: rgba(69, 76, 83, .42); background: #f0f1ef; transform: translateY(-1px); }
+.tool-button[aria-pressed="true"] { border-color: rgba(69, 76, 83, .52); background: #e2e4e3; }
+.tool-button[aria-pressed="true"] b { color: var(--ink); background: rgba(69, 76, 83, .13); }
+.video-control { display: flex; align-items: center; justify-content: space-between; min-height: 40px; padding: 0 5px; }
+.video-control div { display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 610; }
+.video-control i { color: var(--accent); font-size: 19px; }
+.video-control .control-copy { display: flex; flex-direction: column; gap: 2px; }
+.video-control .control-copy small { color: var(--muted); font-size: 10px; font-weight: 500; }
+.compact-button { min-height: 30px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: var(--surface); cursor: pointer; font-size: 11px; font-weight: 620; }
+.compact-button:hover { border-color: rgba(69, 76, 83, .42); background: var(--surface-2); }
+.compact-button:active { transform: scale(.97); }
+.compact-button[aria-pressed="true"] { border-color: transparent; color: #f7f7f5; background: var(--accent); }
+#status { min-height: 17px; padding: 0 3px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+#status:empty { display: none; }
+#status[data-state="error"] { color: var(--danger); }
+#status[data-state="success"] { color: #3f654f; }
+button:disabled { cursor: wait; opacity: .62; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }
+
+/* MVP：尚未開放的功能列。整列反灰，按鍵直接寫 Coming soon。
+   別用絕對定位的角標——它會壓在按鍵文字上，變成「Coming s開啟」。 */
+.video-control.coming-soon { opacity: .5; cursor: not-allowed; }
+.video-control.coming-soon button {
+  /* 停用的按鍵不發出點擊事件也擋住冒泡，讓它不吃滑鼠事件，
+     點擊才會落到整列上，Coming soon 的提示才出得來。 */
+  pointer-events: none;
+  font-weight: 650;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}

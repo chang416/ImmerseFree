@@ -1,0 +1,81 @@
+.immersefree-page-translation {
+  margin-block: .25em .8em !important;
+  padding-inline-start: .65em !important;
+  border-inline-start: 2px solid #5d646a !important;
+  color: color-mix(in srgb, currentColor 88%, #5d646a) !important;
+  font: inherit !important;
+  line-height: 1.55 !important;
+  opacity: .95 !important;
+}
+
+.immersefree-page-progress {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  right: 22px !important;
+  bottom: 22px !important;
+  width: min(340px, calc(100vw - 44px)) !important;
+  padding: 13px 14px !important;
+  border: 1px solid rgba(32, 35, 39, .16) !important;
+  border-radius: 14px !important;
+  color: #202327 !important;
+  background: rgba(250,250,248,.97) !important;
+  box-shadow: 0 18px 54px rgba(42,47,52,.2) !important;
+  font: 12px/1.4 "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif !important;
+  backdrop-filter: blur(18px) !important;
+}
+.immersefree-page-progress > div { display: flex !important; justify-content: space-between !important; gap: 14px !important; margin-bottom: 9px !important; }
+.immersefree-page-progress strong { font-size: 12px !important; font-weight: 680 !important; }
+.immersefree-page-progress span { overflow: hidden !important; color: #6f7479 !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+.immersefree-page-progress progress { display: block !important; width: 100% !important; height: 6px !important; border: 0 !important; border-radius: 999px !important; overflow: hidden !important; accent-color: #454c53 !important; }
+.immersefree-page-progress progress::-webkit-progress-bar { background: #e0e2e0 !important; }
+.immersefree-page-progress progress::-webkit-progress-value { border-radius: 999px !important; background: #454c53 !important; }
+.immersefree-page-progress[data-state="error"] strong { color: #744a4a !important; }
+
+.immersefree-quick-card {
+  all: initial;
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  box-sizing: border-box !important;
+  width: min(max(320px, 24em), calc(100vw - 24px)) !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(32,35,39,.16) !important;
+  border-radius: 16px !important;
+  color: #202327 !important;
+  background: #fafaf8 !important;
+  box-shadow: 0 24px 70px rgba(42,47,52,.22) !important;
+  font-family: "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",-apple-system,BlinkMacSystemFont,sans-serif !important;
+  /* 字級由內容腳本依「被翻的那段內文」設定，網頁放大時翻譯框跟著放大。 */
+  font-size: var(--immersefree-quick-font-size, 15px) !important;
+  line-height: 1.55 !important;
+}
+
+.immersefree-quick-card header,
+.immersefree-quick-card footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: .7em .95em !important;
+}
+
+.immersefree-quick-card header { border-bottom: 1px solid rgba(32,35,39,.10) !important; font-weight: 650 !important; font-size: .84em !important; }
+.immersefree-quick-card footer { justify-content: flex-end !important; border-top: 1px solid rgba(32,35,39,.10) !important; }
+.immersefree-quick-source { max-height: 6.4em !important; overflow: auto !important; padding: .8em .95em .3em !important; color: #6f7479 !important; font-size: .82em !important; }
+.immersefree-quick-translation { min-height: 3em !important; max-height: 12em !important; overflow: auto !important; padding: .5em .95em 1em !important; font-size: 1em !important; }
+.immersefree-quick-translation[data-state="pending"] { color: #6f7479 !important; }
+.immersefree-quick-translation[data-state="error"] { color: #744a4a !important; }
+.immersefree-quick-card button { all: initial !important; color: #454c53 !important; font-family: inherit !important; font-weight: 600 !important; font-size: .8em !important; line-height: 1 !important; cursor: pointer !important; }
+.immersefree-quick-card .immersefree-quick-close { color: #6f7479 !important; font-size: 1.4em !important; }
+
+.immersefree-input-status {
+  all: initial;
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  padding: 8px 11px !important;
+  border: 1px solid rgba(32,35,39,.16) !important;
+  border-radius: 9px !important;
+  color: #202327 !important;
+  background: #fafaf8 !important;
+  box-shadow: 0 10px 30px rgba(42,47,52,.2) !important;
+  font: 600 11px/1.2 "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif !important;
+}
+.immersefree-input-status[data-state="error"] { color: #744a4a !important; }
