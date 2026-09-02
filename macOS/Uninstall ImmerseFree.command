@@ -14,4 +14,4 @@ done
 
 echo "本機服務、擴充功能資料夾與啟動設定已移到垃圾桶，清空前都還救得回來。"
 echo "瀏覽器裡的擴充功能請到 chrome://extensions 手動移除。"
-read -r "reply?按 Return 關閉。"
+read -r "reply?按 Return 關閉。" || true

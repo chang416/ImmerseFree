@@ -15,7 +15,7 @@ noninteractive="${IMMERSEFREE_NONINTERACTIVE:-0}"
 
 pause_if_needed() {
   if [ "$noninteractive" != "1" ]; then
-    read -r "reply?按 Return 關閉。"
+    read -r "reply?按 Return 關閉。" || true
   fi
 }
 

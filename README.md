@@ -103,9 +103,9 @@ With page translation enabled, ImmerseFree keeps each original paragraph and pla
 - **Episode study:** collect useful vocabulary and sentence patterns from the current episode.
 - **影集學習**：整理目前單集裡值得學習的單字與句型。
 
-These entries are already visible in the extension but remain disabled as **Coming soon**. They are not included in version 0.7.0.
+These entries are already visible in the extension but remain disabled as **Coming soon**. They are not included in version 0.7.1.
 
-這些入口已顯示在擴充功能中，但目前仍為停用的 **Coming soon** 狀態，不包含在 0.7.0 版內。
+這些入口已顯示在擴充功能中，但目前仍為停用的 **Coming soon** 狀態，不包含在 0.7.1 版內。
 
 ## Support the developer｜支持開發者
 

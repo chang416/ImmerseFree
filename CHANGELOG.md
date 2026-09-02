@@ -1,5 +1,11 @@
 # Changelog｜版本紀錄
 
+## 0.7.1 — 2026-09-02
+
+Fixed the Traditional Chinese Markdown labels that GitHub could render as literal `**` characters. The macOS scripts now also complete successfully when a terminal prompt receives end-of-input, while keeping the normal “press Return” prompt for interactive users.
+
+修正 GitHub 可能把繁中 Markdown 標籤顯示成 `**` 文字的問題。macOS 腳本在終端機提示收到輸入結束時也能正常結束；互動使用者仍會看到原本的「按 Return」提示。
+
 ## 0.7.0 — 2026-09-02
 
 Initial open-source MVP release. It includes bilingual page, selection, hover, input-field, and PDF translation; local Antigravity and OpenCode CLI support; Gemini and custom OpenAI-compatible APIs; Windows and macOS installers; a Safari Web Extension project; automated integrity tests; and beginner-friendly English／Traditional Chinese installation guides.

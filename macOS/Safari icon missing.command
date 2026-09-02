@@ -13,4 +13,4 @@ echo
 
 /usr/bin/open -a "Safari" || true
 
-read -r "reply?按 Return 關閉。"
+read -r "reply?按 Return 關閉。" || true

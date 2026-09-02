@@ -15,7 +15,7 @@ echo "正在安裝 ImmerseFree…"
 
 if [ ! -f "$bridge_source/server.mjs" ] || [ ! -f "$chrome_source/manifest.json" ]; then
   echo "找不到 Extension 或 Bridge。請確認整個專案都已下載（不要只抓 macOS 資料夾）。" >&2
-  read -r "reply?按 Return 結束。"
+  read -r "reply?按 Return 結束。" || true
   exit 1
 fi
 
@@ -44,7 +44,7 @@ if [ -z "$node_bin" ]; then
   echo "請先安裝 LTS 版："
   echo "  https://nodejs.org/     或   brew install node"
   echo "裝好之後重新執行這個安裝程式。"
-  read -r "reply?按 Return 結束。"
+  read -r "reply?按 Return 結束。" || true
   exit 1
 fi
 echo "使用 Node.js：$node_bin"
@@ -121,4 +121,4 @@ echo "  2. 按「載入未封裝項目」"
 echo "  3. 選擇：$chrome_install_dir"
 echo
 echo "Safari 需要 Xcode 與你自己的 Apple 帳號簽署，請執行「Install or update Safari.command」。"
-read -r "reply?按 Return 關閉。"
+read -r "reply?按 Return 關閉。" || true

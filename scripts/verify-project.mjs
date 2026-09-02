@@ -22,6 +22,15 @@ assert.equal(
   "README bold text must not run directly into CJK text after its closing delimiter"
 );
 
+for (const file of (await readdir(path.join(root, "macOS"))).filter((name) => name.endsWith(".command"))) {
+  const command = await readFile(path.join(root, "macOS", file), "utf8");
+  assert.equal(
+    /^\s*read -r\b(?!.*\|\| true)/m.test(command),
+    false,
+    `${file} must not fail solely because its terminal prompt receives EOF`
+  );
+}
+
 assert.equal(chromiumManifest.manifest_version, 3, "Chromium manifest must use MV3");
 assert.equal(safariManifest.manifest_version, 3, "Safari manifest must use MV3");
 assert.equal(chromiumManifest.version, safariManifest.version, "Browser package versions must match");
