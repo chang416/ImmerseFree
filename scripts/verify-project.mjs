@@ -12,9 +12,15 @@ const readJson = async (file) => JSON.parse(await readFile(file, "utf8"));
 const chromiumManifest = await readJson(path.join(chromiumRoot, "manifest.json"));
 const safariManifest = await readJson(path.join(safariRoot, "manifest.json"));
 const chromiumOptionsHtml = await readFile(path.join(chromiumRoot, "ui", "options.html"), "utf8");
+const readme = await readFile(path.join(root, "README.md"), "utf8");
 
 assert.match(chromiumOptionsHtml, /https:\/\/opencode\.ai\/zen\/v1/, "Options UI must use the current OpenCode Zen endpoint");
 assert.equal(chromiumOptionsHtml.includes("opencode.ai/inference/openai/v1"), false, "Options UI must not expose the retired OpenCode endpoint");
+assert.equal(
+  /\*\*[^*\n]*[：:]\*\*(?=[\p{Script=Han}])/u.test(readme),
+  false,
+  "README bold text must not run directly into CJK text after its closing delimiter"
+);
 
 assert.equal(chromiumManifest.manifest_version, 3, "Chromium manifest must use MV3");
 assert.equal(safariManifest.manifest_version, 3, "Safari manifest must use MV3");

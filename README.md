@@ -27,9 +27,9 @@ Open the [latest release](https://github.com/chang416/ImmerseFree/releases/lates
 打開 [最新版本下載頁](https://github.com/chang416/ImmerseFree/releases/latest)，往下找到 **Assets**。如果沒有看到檔案清單，請按 **Assets** 左邊的小三角形把清單展開。
 
 - **Windows:** download [`ImmerseFree-Windows.zip`](https://github.com/chang416/ImmerseFree/releases/latest/download/ImmerseFree-Windows.zip).
-- **Windows：**下載 [`ImmerseFree-Windows.zip`](https://github.com/chang416/ImmerseFree/releases/latest/download/ImmerseFree-Windows.zip)。
+- **Windows**：下載 [`ImmerseFree-Windows.zip`](https://github.com/chang416/ImmerseFree/releases/latest/download/ImmerseFree-Windows.zip)。
 - **macOS:** download [`ImmerseFree-macOS.zip`](https://github.com/chang416/ImmerseFree/releases/latest/download/ImmerseFree-macOS.zip).
-- **macOS：**下載 [`ImmerseFree-macOS.zip`](https://github.com/chang416/ImmerseFree/releases/latest/download/ImmerseFree-macOS.zip)。
+- **macOS**：下載 [`ImmerseFree-macOS.zip`](https://github.com/chang416/ImmerseFree/releases/latest/download/ImmerseFree-macOS.zip)。
 
 If a release asset is temporarily unavailable, click the green **Code** button on the repository page, choose **Download ZIP**, unzip it, and follow the same platform instructions below.
 
@@ -97,11 +97,11 @@ With page translation enabled, ImmerseFree keeps each original paragraph and pla
 ## Coming soon｜即將推出
 
 - **AI video subtitles:** translate video subtitles with the selected model.
-- **AI 影片字幕：**使用選定的模型翻譯影片字幕。
+- **AI 影片字幕**：使用選定的模型翻譯影片字幕。
 - **Dual subtitles:** show the original and translated Netflix／Disney+ subtitle tracks together.
-- **雙軌字幕：**同時顯示 Netflix／Disney+ 的原文與譯文字幕軌。
+- **雙軌字幕**：同時顯示 Netflix／Disney+ 的原文與譯文字幕軌。
 - **Episode study:** collect useful vocabulary and sentence patterns from the current episode.
-- **影集學習：**整理目前單集裡值得學習的單字與句型。
+- **影集學習**：整理目前單集裡值得學習的單字與句型。
 
 These entries are already visible in the extension but remain disabled as **Coming soon**. They are not included in version 0.7.0.
 
