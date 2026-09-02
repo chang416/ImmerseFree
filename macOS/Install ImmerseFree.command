@@ -118,7 +118,12 @@ echo
 echo "最後一步（每個瀏覽器設定檔各做一次）："
 echo "  1. 開啟右上角「開發人員模式」"
 echo "  2. 按「載入未封裝項目」"
-echo "  3. 選擇：$chrome_install_dir"
+printf '%s' "$chrome_install_dir" | /usr/bin/pbcopy
+echo "  3. 在選擇資料夾的視窗按 Command + Shift + G"
+echo "  4. 按 Command + V 貼上已複製的路徑，再按 Return 與「開啟」"
+echo
+echo "路徑已複製：$chrome_install_dir"
+echo "注意：解壓縮資料夾內原本叫 Extension；安裝後的 Chrome Extension 位於上方路徑，不是在 macOS 資料夾內。"
 echo
 echo "Safari 需要 Xcode 與你自己的 Apple 帳號簽署，請執行「Install or update Safari.command」。"
 read -r "reply?按 Return 關閉。" || true

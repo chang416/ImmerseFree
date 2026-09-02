@@ -21,6 +21,17 @@ assert.equal(
   false,
   "README bold text must not run directly into CJK text after its closing delimiter"
 );
+assert.match(
+  readme,
+  /Command \+ Shift \+ G/,
+  "README must explain how to paste the hidden macOS extension path into Chrome's folder picker"
+);
+
+for (const file of ["Install ImmerseFree.command", "Enable in another Chrome profile.command"]) {
+  const command = await readFile(path.join(root, "macOS", file), "utf8");
+  assert.match(command, /\/usr\/bin\/pbcopy/, `${file} must copy the installed extension path to the clipboard`);
+  assert.match(command, /Command \+ Shift \+ G/, `${file} must explain where to paste the copied path`);
+}
 
 for (const file of (await readdir(path.join(root, "macOS"))).filter((name) => name.endsWith(".command"))) {
   const command = await readFile(path.join(root, "macOS", file), "utf8");

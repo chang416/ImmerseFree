@@ -55,15 +55,19 @@ If Windows shows **Windows protected your PC**, click **More info → Run anyway
 
 1. Double-click the downloaded ZIP to unzip it. Open the extracted folder, then open `macOS`.
 2. For the first run, open Terminal, drag **`Install ImmerseFree.command`** into the Terminal window, and press Return. macOS may block a downloaded script if you only double-click it the first time.
-3. The installer copies the files, starts the local Bridge at login, and opens the browser extension page plus the correct extension folder.
-4. In Chrome, open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and select the folder opened by the installer.
-5. In Edge, open `edge://extensions`, turn on **Developer mode**, click **Load unpacked**, and select the same folder.
+3. The installer copies the files to a permanent macOS system folder, starts the local Bridge at login, opens the browser extension page, and copies the extension folder path to the clipboard.
+4. In Chrome, open `chrome://extensions`, turn on **Developer mode**, and click **Load unpacked**. In the folder picker, press **Command + Shift + G**, press **Command + V** to paste the copied path, press Return, then click **Open**.
+5. In Edge, open `edge://extensions`, turn on **Developer mode**, click **Load unpacked**, and use the same **Command + Shift + G** steps.
+
+The downloaded folder is named `Extension`, but the installer creates a permanent folder named `Chrome Extension` inside `~/Library/Application Support/ImmerseFree`. You do not need to search inside the extracted `macOS` folder. If you lose the copied path, run **`Enable in another Chrome profile.command`**; it reveals the correct folder and copies its path again.
 
 1. 雙擊下載的 ZIP 解壓縮。打開解壓後的資料夾，再打開 `macOS`。
 2. 第一次執行時，請先開啟「終端機」，把 **`Install ImmerseFree.command`** 拖進終端機視窗，再按 Return。從網路下載的腳本第一次直接雙擊時，macOS 可能會阻擋它。
-3. 安裝程式會複製檔案、設定登入時啟動本機 Bridge，並替你開啟瀏覽器擴充功能頁面與正確的擴充功能資料夾。
-4. 在 Chrome 開啟 `chrome://extensions`，打開 **開發人員模式**，按 **載入未封裝項目**，再選擇安裝程式開啟的資料夾。
-5. 在 Edge 開啟 `edge://extensions`，打開 **開發人員模式**，按 **載入解壓縮的擴充功能**，再選擇同一個資料夾。
+3. 安裝程式會把檔案複製到 macOS 的永久系統資料夾、設定登入時啟動本機 Bridge、開啟瀏覽器擴充功能頁面，並自動把擴充功能資料夾路徑複製到剪貼簿。
+4. 在 Chrome 開啟 `chrome://extensions`，打開 **開發人員模式**，按 **載入未封裝項目**。在選擇資料夾的視窗按 **Command + Shift + G**，再按 **Command + V** 貼上已複製的路徑，按 Return，最後按 **開啟**。
+5. 在 Edge 開啟 `edge://extensions`，打開 **開發人員模式**，按 **載入解壓縮的擴充功能**，再用相同的 **Command + Shift + G** 步驟選取資料夾。
+
+下載包裡的資料夾名稱是 `Extension`，但安裝程式會在 `~/Library/Application Support/ImmerseFree` 內建立永久使用的 `Chrome Extension`。你不需要在解壓後的 `macOS` 資料夾裡尋找它。如果剪貼簿裡的路徑不見了，請執行 **`Enable in another Chrome profile.command`**；它會重新顯示正確資料夾並再次複製路徑。
 
 ### macOS — Safari｜macOS — Safari
 
@@ -103,9 +107,9 @@ With page translation enabled, ImmerseFree keeps each original paragraph and pla
 - **Episode study:** collect useful vocabulary and sentence patterns from the current episode.
 - **影集學習**：整理目前單集裡值得學習的單字與句型。
 
-These entries are already visible in the extension but remain disabled as **Coming soon**. They are not included in version 0.7.1.
+These entries are already visible in the extension but remain disabled as **Coming soon**. They are not included in version 0.7.2.
 
-這些入口已顯示在擴充功能中，但目前仍為停用的 **Coming soon** 狀態，不包含在 0.7.1 版內。
+這些入口已顯示在擴充功能中，但目前仍為停用的 **Coming soon** 狀態，不包含在 0.7.2 版內。
 
 ## Support the developer｜支持開發者
 

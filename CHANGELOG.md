@@ -1,5 +1,11 @@
 # Changelog｜版本紀錄
 
+## 0.7.2 — 2026-09-02
+
+Clarified the macOS Chrome／Edge installation flow. The installer now copies the permanent extension path to the clipboard and explains exactly where to paste it with Command + Shift + G. The bilingual guide also explains why the downloaded `Extension` folder and installed `Chrome Extension` folder have different names.
+
+改善 macOS 的 Chrome／Edge 安裝流程。安裝程式現在會自動複製永久擴充功能路徑，並明確說明如何用 Command + Shift + G 貼上。雙語教學也補充說明下載包裡的 `Extension` 與安裝後的 `Chrome Extension` 為何名稱不同。
+
 ## 0.7.1 — 2026-09-02
 
 Fixed the Traditional Chinese Markdown labels that GitHub could render as literal `**` characters. The macOS scripts now also complete successfully when a terminal prompt receives end-of-input, while keeping the normal “press Return” prompt for interactive users.
