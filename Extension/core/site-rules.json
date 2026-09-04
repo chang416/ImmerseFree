@@ -1,0 +1,418 @@
+{
+  "format": "immersefree-site-rules",
+  "version": 1,
+  "updatedAt": "2026-09-03",
+  "_authoring": "每一條規則都是 ImmerseFree 自寫。骨幹刻意用 W3C 標準的語意與 ARIA 掛點（nav / footer / aside / [role=...] / [aria-label=...] / [data-*]），站台專屬掛點只用公開且長期穩定的那幾個。與對手擴充的 selector 字串重疊率為 0（tests/site-rules-w3-2.test.cjs 腳本化把關）。驗證邊界見 w3-2-log.md：全部只在離線 fixture 上驗證過，未對線上站台實測。",
+  "_fieldNotes": "excludeSelectors = 整塊不翻（導覽列、側欄、頁尾這種自成一段的東西）。stayOriginalSelectors = 保留原文但**留在段落裡**（行內程式碼、公式、股票代碼、[編輯] 連結、按讚數）——這兩個不能互換：排除掉的是「候選元素」，段落裡的行內片段要靠 stayOriginal 才會被跳過。",
+  "rules": [
+    {
+      "id": "github",
+      "matches": ["github.com", "*.github.com"],
+      "note": "程式碼平台：檔案清單與行號不是文章；程式碼區塊與行內 token 保留原文，否則照抄下來就跑不起來。",
+      "excludeSelectors": [
+        "nav[aria-label='Repository']",
+        "nav[aria-label='Global']",
+        "footer[role='contentinfo']",
+        "td[data-line-number]",
+        "div[data-testid='breadcrumbs']"
+      ],
+      "stayOriginalSelectors": [
+        "div.highlight > pre",
+        "code[data-code-marker]",
+        "span.pl-token"
+      ],
+      "minWords": 4,
+      "urlChangeDelay": 320
+    },
+    {
+      "id": "github-gist",
+      "matches": ["gist.github.com"],
+      "note": "Gist 幾乎整頁都是程式碼；只有說明檔與留言值得翻。用 .add 疊在 github 那條之上——gist.github.com 也被 *.github.com 命中，不加後綴會把上一條的排除清單整組蓋掉。",
+      "excludeSelectors.add": [
+        "div.file-actions"
+      ],
+      "stayOriginalSelectors.add": [
+        "td.js-file-line"
+      ],
+      "minWords": 4
+    },
+    {
+      "id": "reddit",
+      "matches": ["reddit.com", "*.reddit.com"],
+      "note": "討論串：版規側欄與導覽整塊不翻；票數與「3 小時前」是段落裡的行內片段，要留原文但不能把整段排除掉。SPA 換頁後等一下再重掃。",
+      "excludeSelectors": [
+        "aside[aria-label]",
+        "nav[aria-label]"
+      ],
+      "stayOriginalSelectors": [
+        "faceplate-number",
+        "faceplate-timeago",
+        "span[data-vote-count]"
+      ],
+      "minWords": 5,
+      "urlChangeDelay": 450
+    },
+    {
+      "id": "x-twitter",
+      "matches": ["x.com", "twitter.com", "*.x.com", "*.twitter.com"],
+      "note": "推文很短，門檻不能高；側欄與「回覆／轉推／喜歡」那一列整塊不翻。虛擬滾動換頁很快，延遲拉長避免掃到已被回收的節點。",
+      "excludeSelectors": [
+        "nav[aria-label='Primary']",
+        "div[data-testid='sidebarColumn']",
+        "div[role='group'][aria-label]"
+      ],
+      "stayOriginalSelectors": [
+        "span[data-testid='app-text-transition-container']"
+      ],
+      "minChars": 2,
+      "minWords": 2
+    },
+    {
+      "id": "youtube-home",
+      "matches": ["https://www.youtube.com/", "https://m.youtube.com/"],
+      "note": "只針對首頁（完整網址形態）：首頁全是影片標題，兩三個字也要翻，所以門檻降到最低。播放頁不套這條，避免動到字幕區。",
+      "excludeSelectors": [
+        "ytd-mini-guide-renderer",
+        "div#chips-wrapper"
+      ],
+      "stayOriginalSelectors": [
+        "span#video-title-badge",
+        "span.ytd-thumbnail-overlay-time-status-renderer"
+      ],
+      "minChars": 1,
+      "minWords": 1,
+      "urlChangeDelay": 500
+    },
+    {
+      "id": "wikipedia",
+      "matches": ["*.wikipedia.org", "*.wikibooks.org", "*.wiktionary.org"],
+      "note": "百科：條目本文只在解析輸出容器裡。參考文獻清單、導覽盒、維護模板整塊不翻；標題後面的「[編輯]」與公式是段落裡的行內片段，保留原文。定義句常常很短，門檻壓低。",
+      "selectors": [
+        "div.mw-parser-output"
+      ],
+      "excludeSelectors": [
+        "ol.references",
+        "div.navbox",
+        "table.metadata"
+      ],
+      "stayOriginalSelectors": [
+        "span.mw-editsection",
+        "span.mwe-math-mathml-a11y",
+        "span.chemf"
+      ],
+      "minChars": 2,
+      "minWords": 2
+    },
+    {
+      "id": "mdn",
+      "matches": ["developer.mozilla.org"],
+      "note": "技術文件：側欄、麵包屑、瀏覽器相容表整塊不翻；語法區塊與行內 API 名稱保留原文，否則複製下來的程式碼會壞掉。",
+      "selectors": [
+        "article.main-page-content"
+      ],
+      "excludeSelectors": [
+        "div.sidebar-inner",
+        "table.bc-table",
+        "nav.breadcrumbs-container"
+      ],
+      "stayOriginalSelectors": [
+        "div.code-example pre",
+        "code.language-js",
+        "samp.mdn-output"
+      ],
+      "minWords": 3
+    },
+    {
+      "id": "stackoverflow",
+      "matches": ["stackoverflow.com", "*.stackoverflow.com"],
+      "note": "問答站：問題與每一則回答都在同一種容器裡，所以白名單是聯集不是「第一個」。程式碼與錯誤訊息保留原文——翻了就搜不到、也貼不回去。",
+      "selectors": [
+        "div.s-prose"
+      ],
+      "excludeSelectors": [
+        "div.js-voting-container",
+        "div.post-taglist",
+        "div#left-sidebar"
+      ],
+      "stayOriginalSelectors": [
+        "pre.s-code-block",
+        "code.s-code-block"
+      ],
+      "minWords": 3
+    },
+    {
+      "id": "stackexchange",
+      "matches": ["*.stackexchange.com", "superuser.com", "serverfault.com", "askubuntu.com"],
+      "note": "與 Stack Overflow 同一套版面，但數學與物理站有大量 MathJax，行內公式必須整塊保留。",
+      "selectors": [
+        "div.s-prose"
+      ],
+      "excludeSelectors": [
+        "div.js-voting-container",
+        "div#left-sidebar"
+      ],
+      "stayOriginalSelectors": [
+        "pre.s-code-block",
+        "span.math-container"
+      ],
+      "minWords": 3
+    },
+    {
+      "id": "hacker-news",
+      "matches": ["news.ycombinator.com"],
+      "note": "版面是 table 排出來的，一格裡常常同時有標題與來源網域。操作列（N points by … | hide | past）整塊不翻；來源網域與留言標頭是格子裡的行內片段，保留原文。留言常常只有一句，門檻壓低。",
+      "excludeSelectors": [
+        "td.votelinks",
+        "span.rank"
+      ],
+      "stayOriginalSelectors": [
+        "span.sitebit",
+        "span.comhead",
+        "span.subline"
+      ],
+      "minChars": 2,
+      "minWords": 2
+    },
+    {
+      "id": "medium",
+      "matches": ["medium.com", "*.medium.com"],
+      "note": "文章站：本文限縮在可選取段落容器內，導覽與社群列整塊不翻。程式碼區塊不必在這裡列——pre 本來就在預設保留清單裡，重複列只會讓人以為少了它就會被翻。",
+      "selectors": [
+        "section[data-field='body']"
+      ],
+      "excludeSelectors": [
+        "div[data-testid='storyFooterSocialMenu']",
+        "nav[aria-label='Medium']"
+      ],
+      "minWords": 4,
+      "urlChangeDelay": 250
+    },
+    {
+      "id": "dev-to",
+      "matches": ["dev.to", "*.dev.to"],
+      "note": "開發者社群：文章本文與留言要翻，文章標頭的作者／時間列與右側欄不翻；程式碼區塊與終端輸出保留原文。",
+      "selectors": [
+        "div#article-body",
+        "div.comment__content"
+      ],
+      "excludeSelectors": [
+        "div.crayons-article__header__meta",
+        "aside#sidebar-wrapper-right"
+      ],
+      "stayOriginalSelectors": [
+        "div.highlight__panel",
+        "pre.highlight"
+      ],
+      "minWords": 3
+    },
+    {
+      "id": "npm",
+      "matches": ["www.npmjs.com", "npmjs.com"],
+      "note": "套件頁：README 說明要翻，相依清單整塊不翻；安裝指令、版本號、每週下載數是行內片段，保留原文（翻了照抄就裝不起來）。",
+      "excludeSelectors": [
+        "div#package-tab-dependencies",
+        "nav[aria-label='Package']"
+      ],
+      "stayOriginalSelectors": [
+        "code#package-install-command",
+        "span.b.f4.fw6",
+        "p.f6.mb3.truncate"
+      ],
+      "minWords": 4
+    },
+    {
+      "id": "arxiv",
+      "matches": ["arxiv.org", "*.arxiv.org"],
+      "note": "論文摘要頁：摘要與標題要翻。作者列與投稿歷程整塊不翻；arXiv 編號、分類代碼、LaTeX 公式是行內片段，保留原文。標題常常不到 10 個詞。",
+      "selectors": [
+        "blockquote.abstract",
+        "h1.title"
+      ],
+      "excludeSelectors": [
+        "div.authors",
+        "div.submission-history"
+      ],
+      "stayOriginalSelectors": [
+        "span.primary-subject",
+        "span.arxivid",
+        "span.ltx_Math"
+      ],
+      "minWords": 2
+    },
+    {
+      "id": "nytimes",
+      "matches": ["www.nytimes.com", "cn.nytimes.com"],
+      "note": "報紙：本文限縮在文章主體。訂閱牆提示整塊不翻；圖片版權行是段落裡的行內片段，保留原文。",
+      "selectors": [
+        "section[name='articleBody']"
+      ],
+      "excludeSelectors": [
+        "div[data-testid='inline-message']",
+        "nav[aria-label='Sections']"
+      ],
+      "stayOriginalSelectors": [
+        "span.credit-text"
+      ],
+      "minWords": 5
+    },
+    {
+      "id": "bbc",
+      "matches": ["www.bbc.com", "www.bbc.co.uk"],
+      "note": "本文段落用 data-component 標出來，白名單直接鎖在那幾種；相關連結區塊與導覽不翻。",
+      "selectors": [
+        "div[data-component='text-block']",
+        "div[data-component='headline-block']"
+      ],
+      "excludeSelectors": [
+        "div[data-component='links-block']",
+        "nav[aria-label='BBC']"
+      ],
+      "minWords": 4
+    },
+    {
+      "id": "economist",
+      "matches": ["www.economist.com"],
+      "note": "本文段落有專屬 data 屬性；訂閱訴求與圖表整塊不翻。段落偏長，下限拉高避免把「Listen to this story」這種功能字翻進去。",
+      "selectors": [
+        "div[data-body-id]"
+      ],
+      "excludeSelectors": [
+        "div[data-test-id='subscribe-cta']",
+        "figure[data-test-id='chart']"
+      ],
+      "minWords": 6
+    },
+    {
+      "id": "the-guardian",
+      "matches": ["www.theguardian.com"],
+      "note": "本文與導言在具名容器內；作者資訊側欄與贊助訴求不翻。",
+      "selectors": [
+        "div[data-gu-name='body']",
+        "div[data-gu-name='standfirst']"
+      ],
+      "excludeSelectors": [
+        "aside[data-gu-name='meta']",
+        "div[data-contribution-banner]"
+      ],
+      "minWords": 5
+    },
+    {
+      "id": "reuters",
+      "matches": ["www.reuters.com"],
+      "note": "本文段落有專屬 data-testid；免責聲明與導覽整塊不翻；股票代碼保留原文（翻了就查不到那檔）。",
+      "selectors": [
+        "div[data-testid='ArticleBody']"
+      ],
+      "excludeSelectors": [
+        "div[data-testid='Disclaimer']",
+        "nav[data-testid='PrimaryNavigation']"
+      ],
+      "stayOriginalSelectors": [
+        "a[data-testid='InstrumentLink']"
+      ],
+      "minWords": 5
+    },
+    {
+      "id": "amazon",
+      "matches": ["www.amazon.com", "www.amazon.co.jp", "www.amazon.de"],
+      "note": "商品頁：標題與賣點條列要翻（常常只有兩三個詞）。價格區與導覽整塊不翻；評價數與規格表的型號欄保留原文。",
+      "excludeSelectors": [
+        "div#corePriceDisplay_desktop_feature_div",
+        "div#navbar-main"
+      ],
+      "stayOriginalSelectors": [
+        "span#acrCustomerReviewText",
+        "td.po-break-word"
+      ],
+      "minChars": 2,
+      "minWords": 2
+    },
+    {
+      "id": "python-docs",
+      "matches": ["docs.python.org"],
+      "note": "官方文件（Sphinx 版面）：說明文字要翻，側欄不翻；函式簽名、參數名、標題後的錨點連結保留原文。",
+      "selectors": [
+        "div[role='main'] div.body"
+      ],
+      "excludeSelectors": [
+        "dl.py.function > dt",
+        "div.sphinxsidebarwrapper"
+      ],
+      "stayOriginalSelectors": [
+        "a.headerlink",
+        "span.sig-param",
+        "div.highlight-python3"
+      ],
+      "minWords": 3
+    },
+    {
+      "id": "react-dev",
+      "matches": ["react.dev", "*.react.dev"],
+      "note": "框架文件：說明段落要翻，互動沙盒與頁內目錄整塊不翻；範例程式與行內 API 名稱保留原文。文件是 SPA，換頁要等 DOM 換完。",
+      "selectors": [
+        "article.mdx-content"
+      ],
+      "excludeSelectors": [
+        "div.sandpack",
+        "nav.toc-nav"
+      ],
+      "stayOriginalSelectors": [
+        "code.sp-code",
+        "pre.sp-cm"
+      ],
+      "minWords": 3,
+      "urlChangeDelay": 200
+    },
+    {
+      "id": "nodejs-docs",
+      "matches": ["nodejs.org"],
+      "note": "API 文件：說明要翻，側欄不翻；方法簽名、型別標註、穩定度標記保留原文。",
+      "selectors": [
+        "div#apicontent"
+      ],
+      "excludeSelectors": [
+        "div#column2",
+        "div.api_stability"
+      ],
+      "stayOriginalSelectors": [
+        "span.type",
+        "code.api_metadata"
+      ],
+      "minWords": 3
+    },
+    {
+      "id": "kubernetes-docs",
+      "matches": ["kubernetes.io", "*.kubernetes.io"],
+      "note": "雲原生文件：說明要翻，頁內目錄與側欄不翻；YAML 清單、kubectl 指令、欄位路徑一律原文——翻了照抄就跑不起來。",
+      "selectors": [
+        "div.td-content"
+      ],
+      "excludeSelectors": [
+        "nav#TableOfContents",
+        "aside.td-sidebar-nav"
+      ],
+      "stayOriginalSelectors": [
+        "div.highlight-yaml",
+        "code.language-shell"
+      ],
+      "minWords": 3
+    },
+    {
+      "id": "substack",
+      "matches": ["*.substack.com", "substack.com"],
+      "note": "電子報：本文要翻，訂閱表單與付費牆訴求整塊不翻；按讚／留言計數保留原文。副標（h3.subtitle）仍未列入白名單：W4-1 已修掉播放器排除清單過寬的 bug（core/player-context-core.js，[class*='subtitle'] 現在只在播放器語境內生效），所以列了會生效——但那會改變本規則的預期候選段數（e2e/fixtures/w3-2-expected.json），屬於 W3-2 的驗收範圍，留給下一次一起改。",
+      "selectors": [
+        "div.available-content"
+      ],
+      "excludeSelectors": [
+        "div.subscribe-widget",
+        "div.paywall-cta"
+      ],
+      "stayOriginalSelectors": [
+        "div.post-ufi-button"
+      ],
+      "minWords": 4,
+      "urlChangeDelay": 250
+    }
+  ]
+}

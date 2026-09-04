@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ImmerseFree 設定</title>
   <link rel="stylesheet" href="options.css">
+  <!-- 主題預覽直接吃 content.css：預覽容器掛 data-imf-theme，裡面放一段
+       .immersefree-page-translation，套的就是真正會進網頁的那套規則——
+       選項頁不再自己畫一份「長得像」的樣式，預覽與實際永遠一致。 -->
+  <link rel="stylesheet" href="../content/content.css">
 </head>
 <body>
   <main>
@@ -12,6 +16,16 @@
       <img src="../icons/icon-128.png" width="44" height="44" alt="">
       <div><h1>ImmerseFree</h1><p>翻譯與模型設定</p></div>
     </header>
+
+    <!-- 分頁：設定／術語表／診斷。後兩個面板都放在表單外面——它們裡面沒有任何
+         要交給「儲存並測試」的欄位（術語表有自己的儲存鈕與自己的儲存位置），
+         放進表單只會讓送出時多掃一堆不相干的節點。 -->
+    <nav class="tabs" role="tablist">
+      <button id="tab-settings" type="button" role="tab" aria-controls="settings-form" aria-selected="true">設定</button>
+      <button id="tab-glossary" type="button" role="tab" aria-controls="panel-glossary" aria-selected="false">術語表</button>
+      <button id="tab-site-rules" type="button" role="tab" aria-controls="panel-site-rules" aria-selected="false">網站規則</button>
+      <button id="tab-diagnostics" type="button" role="tab" aria-controls="panel-diagnostics" aria-selected="false">診斷</button>
+    </nav>
 
     <form id="settings-form">
       <section>
@@ -40,7 +54,7 @@
 
         <div id="opencode-fields" class="provider-fields" hidden>
           <label>
-            OpenCode token／API key（留空時使用本機 OpenCode CLI）
+            OpenCode token／API key（免費入口可留空）
             <input id="opencodeApiKey" name="opencodeApiKey" type="password" autocomplete="off" spellcheck="false">
           </label>
           <label>
@@ -73,8 +87,10 @@
           </label>
           <p class="hint">每次呼叫會輪替金鑰；遇到額度或金鑰錯誤會自動換下一把。若金鑰屬於同一 Google 專案，配額可能仍共用。</p>
         </div>
-      </section>
 
+        <!-- 自訂 API 欄位原本掉在 </section> 外面，變成一塊沒有卡片包住的孤兒欄位，
+             選了「自訂 API」才會看到它浮在兩張卡中間。它跟上面幾組一樣屬於
+             「翻譯服務」，所以收回這張卡裡。 -->
         <div id="custom-fields" class="provider-fields" hidden>
           <label>
             API base URL
@@ -98,6 +114,23 @@
           <p class="hint">任何相容 OpenAI <code>/chat/completions</code> 介面的服務都能用：OpenAI、Groq、
             Together、OpenRouter、DeepSeek、以及本機的 Ollama 或 LM Studio。填 base URL 到 <code>/v1</code> 為止即可。</p>
         </div>
+      </section>
+
+      <section id="provider-pool">
+        <h2>失敗自動轉移</h2>
+        <p class="hint">某個引擎掛掉時（額度用完、本機服務沒開、逾時、CLI 連不上）自動改用下一個，
+          一整批翻譯不會因為單一引擎而全部失敗。轉移只發生在「批」與「批」之間，同一句話不會翻到一半換引擎。
+          一次翻譯最多額外嘗試 2 個引擎就停，不會無限輪；換過引擎時工具列會顯示「已改用 ○○」，不會偷偷換。</p>
+        <label class="check">
+          <input id="providerFallbackEnabled" name="providerFallbackEnabled" type="checkbox">
+          引擎失敗時自動改用下一個（預設開啟）
+        </label>
+        <p class="hint provider-order-hint">備援順序（由上而下）。第一個永遠是你在上面選的那個引擎，
+          這裡排的是它失敗之後的遞補次序。沒填金鑰或網址的引擎會自動跳過。</p>
+        <ol id="provider-order-list" class="provider-order"></ol>
+        <input id="providerOrder" name="providerOrder" type="hidden">
+        <p id="provider-pool-note" class="hint"></p>
+      </section>
 
       <section class="language-grid">
         <h2>語言</h2>
@@ -133,6 +166,23 @@
         </label>
       </section>
 
+      <section id="display-section">
+        <h2>雙語顯示</h2>
+        <p class="hint">譯文在網頁上的樣子。點一種主題立刻在下面預覽，儲存後套用到之後的翻譯（已翻好的頁面也會即時換裝）。</p>
+        <div id="theme-grid" class="theme-grid" role="radiogroup" aria-label="譯文主題"></div>
+        <label>
+          顯示模式
+          <select id="displayMode" name="displayMode">
+            <option value="bilingual">雙語對照（原文＋譯文）</option>
+            <option value="translationOnly">僅顯示譯文（原文暫時隱藏，可隨時切回）</option>
+          </select>
+        </label>
+        <label class="check">
+          <input id="floatingBallEnabled" name="floatingBallEnabled" type="checkbox">
+          在網頁側邊顯示懸浮球（可拖曳換位置；滑過展開翻譯／還原／僅譯文）
+        </label>
+      </section>
+
       <section>
         <h2>翻譯品質</h2>
         <label>
@@ -141,6 +191,7 @@
             <option value="natural">自然流暢</option>
             <option value="literal">忠實原文</option>
             <option value="academic">學術精準</option>
+            <option value="subtitle">精簡字幕</option>
           </select>
         </label>
         <label>
@@ -149,10 +200,39 @@
         </label>
       </section>
 
+      <section>
+        <h2>雙軌字幕</h2>
+        <p class="hint">使用 Disney+ 或 Netflix 現有的第二條字幕軌，不經模型，也不消耗額度。</p>
+        <label>
+          第二條字幕語言
+          <select id="dualSubtitleLanguage" name="dualSubtitleLanguage">
+            <option value="zh-Hant">繁體中文</option>
+            <option value="zh-Hans">簡體中文</option>
+            <option value="en">英文</option>
+            <option value="ja">日文</option>
+            <option value="ko">韓文</option>
+            <option value="th">泰文</option>
+          </select>
+        </label>
+        <label>
+          播放器已顯示第二條語言時，改用
+          <select id="dualSubtitleFallbackLanguage" name="dualSubtitleFallbackLanguage">
+            <option value="en">英文</option>
+            <option value="zh-Hant">繁體中文</option>
+            <option value="zh-Hans">簡體中文</option>
+            <option value="ja">日文</option>
+            <option value="ko">韓文</option>
+            <option value="th">泰文</option>
+          </select>
+        </label>
+        <p class="hint">切換播放器字幕後會依畫面文字自動判斷，不用重設。</p>
+      </section>
 
       <section>
         <h2>功能</h2>
         <label class="check"><input id="pageTranslationEnabled" name="pageTranslationEnabled" type="checkbox">允許網頁雙語翻譯</label>
+        <label class="check"><input id="subtitleTranslationEnabled" name="subtitleTranslationEnabled" type="checkbox">允許影片雙語字幕</label>
+        <label class="check"><input id="showOriginalSubtitle" name="showOriginalSubtitle" type="checkbox">字幕保留原文</label>
         <label class="check"><input id="selectionTranslationEnabled" name="selectionTranslationEnabled" type="checkbox">反白文字後立即翻譯</label>
         <label class="check"><input id="hoverTranslationEnabled" name="hoverTranslationEnabled" type="checkbox">滑鼠懸停段落 0.7 秒後翻譯</label>
         <label class="check"><input id="inputTranslationEnabled" name="inputTranslationEnabled" type="checkbox">輸入框連按三次空白時翻譯</label>
@@ -173,6 +253,152 @@
         <output id="status" role="status" aria-live="polite"></output>
       </div>
     </form>
+
+    <section id="panel-glossary" role="tabpanel" aria-labelledby="tab-glossary" hidden>
+      <h2>術語表</h2>
+      <p class="hint">固定專有名詞的譯法，讓同一個詞從頭到尾翻成同一個說法。網頁、PDF、劃詞翻譯都會套用。</p>
+      <!-- 整句都放進 <strong> 裡，不要只包前半句：ui/i18n.js 是逐個文字節點比對
+           字典的，中間插一個標籤就會把句子切成兩個節點，兩半都對不上字典，
+           切英文時這一行會整句留在中文——而且沒有任何錯誤訊息。 -->
+      <p class="hint"><strong>只有這段文字真的出現過的術語才會送進模型，沒講到的詞一個字都不會多送，所以術語表再長也不會讓翻譯變慢或變貴。</strong></p>
+      <label class="check">
+        <input id="glossaryEnabled" type="checkbox">
+        在網頁、PDF、劃詞也套用術語表
+      </label>
+      <p class="hint">影片自己分析出來的術語、以及你在影片裡改過的譯法，一直都在，不受這個開關影響；預設術語庫要這個開關開著才會套到字幕。</p>
+
+      <h3>預設術語庫</h3>
+      <p class="hint">ImmerseFree 自行編寫的英中對照，用台灣通行的說法。優先序最低：你自己加的術語一律蓋得過它。目標語言不是繁體中文時整份不套用。</p>
+      <label class="check">
+        <input id="glossaryPresetsEnabled" type="checkbox">
+        啟用預設術語庫
+      </label>
+      <div id="glossary-domains" class="glossary-domains"></div>
+      <p id="glossary-preset-count" class="hint"></p>
+      <div class="glossary-scroll">
+        <table id="glossary-presets-table">
+          <thead>
+            <tr><th>原文詞</th><th>固定譯法</th><th>領域</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3>我的術語</h3>
+      <p class="hint">釘選的會排在最前面，一次帶進模型的術語有上限時優先保留。停用的完全不會被送出，但留在清單裡隨時可以打開。</p>
+      <div class="glossary-add">
+        <input id="glossary-new-source" spellcheck="false" placeholder="原文詞，例如 cache">
+        <input id="glossary-new-target" spellcheck="false" placeholder="固定譯法，例如 快取">
+        <button id="glossary-add" type="button">新增術語</button>
+      </div>
+      <div class="glossary-scroll">
+        <table id="glossary-terms">
+          <thead>
+            <tr><th>原文詞</th><th>固定譯法</th><th>釘選</th><th>停用</th><th>刪除</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="glossary-actions">
+        <button id="glossary-save" type="button">儲存術語表</button>
+        <button id="glossary-export" type="button">匯出術語表</button>
+        <button id="glossary-import" type="button">匯入術語表</button>
+        <input id="glossary-import-file" type="file" accept="application/json,.json" hidden>
+        <button id="glossary-clear" type="button">清空我的術語</button>
+      </div>
+      <output id="glossary-note" role="status" aria-live="polite"></output>
+    </section>
+
+    <!-- 網站規則（W3-2）。整個面板放在表單外面：這裡的 JSON 文字框有自己的
+         「存檔前先驗證」流程，混進 saveAndTest 的 FormData 會讓一段寫壞的
+         規則跟著語言、金鑰一起被存下去，而畫面上只會顯示「已儲存」。 -->
+    <section id="panel-site-rules" role="tabpanel" aria-labelledby="tab-site-rules" hidden>
+      <h2>網站規則</h2>
+      <!-- 這一句刻意不折行：i18n 是逐個文字節點比對字典，折行後的縮排會被
+           正規化成一個空格，畫面上就會出現「該翻、 百科」這種多餘空白。 -->
+      <p class="hint">同一套門檻套在所有網站上一定有例外：程式碼平台的行號不該翻、影片首頁的三個字標題該翻、百科的公式不能動。網站規則就是逐站把這幾件事講清楚。</p>
+      <p class="hint"><strong>規則只影響「翻哪裡、不翻哪裡、多短算一段」，不會把任何內容送到別的地方。</strong></p>
+      <label class="check">
+        <input id="siteRulesEnabled" type="checkbox">
+        啟用網站規則（內建規則與你的自訂規則）
+      </label>
+
+      <h3>內建規則</h3>
+      <p class="hint">ImmerseFree 自寫，隨擴充一起更新，不會連外下載。你的自訂規則會疊在它們之上。</p>
+      <p id="site-rules-builtin-count" class="hint"></p>
+      <div class="site-rules-scroll">
+        <table id="site-rules-builtin">
+          <thead>
+            <tr><th>規則</th><th>網域</th><th>為什麼要有這條</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3>我的規則</h3>
+      <p class="hint">一段 JSON。可用欄位：<code>id</code>、<code>matches</code>、<code>selectors</code>、
+        <code>excludeSelectors</code>、<code>extraBlockSelectors</code>、<code>stayOriginalSelectors</code>、
+        <code>minChars</code>、<code>minWords</code>、<code>urlChangeDelay</code>、<code>note</code>。
+        欄位名後面加 <code>.add</code> 是「疊加在內建規則之上」，加 <code>.remove</code> 是「把內建的某幾個拿掉」；
+        不加後綴就是整組換掉。<code>matches</code> 三種寫法：<code>example.com</code>（只比這個網域）、
+        <code>https://example.com/path</code>（比到路徑）、<code>*.example.com</code>（子網域，
+        <strong>不含</strong>裸網域 example.com）。</p>
+      <textarea id="userSiteRules" rows="12" spellcheck="false" autocomplete="off"
+        placeholder='[{"id":"my-site","matches":["example.com"],"excludeSelectors.add":[".sidebar"],"minWords":4}]'></textarea>
+      <div class="site-rules-actions">
+        <button id="site-rules-save" type="button">儲存規則</button>
+        <button id="site-rules-check" type="button">只驗證不儲存</button>
+        <button id="site-rules-sample" type="button">插入範例</button>
+        <button id="site-rules-clear" type="button">清空我的規則</button>
+      </div>
+      <output id="site-rules-note" role="status" aria-live="polite"></output>
+      <pre id="site-rules-errors" hidden></pre>
+    </section>
+
+    <section id="panel-diagnostics" role="tabpanel" aria-labelledby="tab-diagnostics" hidden>
+      <h2>診斷</h2>
+      <p class="hint">最近 50 筆翻譯事件，瀏覽器關掉就清空。</p>
+      <p class="hint"><strong>這份紀錄只有時間、錯誤碼、引擎、批次大小與耗時，不會記錄網頁或字幕的任何一個字。</strong></p>
+      <div class="diagnostics-actions">
+        <button id="diagnostics-refresh" type="button">重新整理</button>
+        <button id="diagnostics-copy" type="button">複製診斷報告</button>
+        <button id="diagnostics-export" type="button">匯出統計 JSON</button>
+        <button id="diagnostics-clear" type="button">清除紀錄</button>
+      </div>
+      <output id="diagnostics-note" role="status" aria-live="polite"></output>
+
+      <h3>統計</h3>
+      <p class="hint">累計數字，跨瀏覽階段保留（按「清除紀錄」會一起歸零）。分母還是 0 的指標顯示為「尚無資料」。</p>
+      <div class="diagnostics-scroll">
+        <table id="diagnostics-metrics">
+          <thead>
+            <tr><th>指標</th><th>數值</th><th>組成</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3>各引擎成功率</h3>
+      <div class="diagnostics-scroll">
+        <table id="diagnostics-providers">
+          <thead>
+            <tr><th>引擎</th><th>成功率</th><th>成功</th><th>失敗</th><th>最後一次</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3>事件</h3>
+      <div class="diagnostics-scroll">
+        <table id="diagnostics-events">
+          <thead>
+            <tr><th>時間</th><th>嚴重度</th><th>錯誤碼</th><th>引擎</th><th>批次</th><th>耗時</th><th>說明與下一步</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <textarea id="diagnostics-report" rows="8" readonly hidden></textarea>
+    </section>
     <section class="project-info">
       <h2>支持開發者</h2>
       <p>我是一名大學生。維護這類開源專案最大的負擔，是軟體與 AI 服務昂貴的訂閱費。如果你願意支持 ImmerseFree，可以透過 Buy Me a Coffee 小額贊助。贊助完全自願，也不會解鎖額外功能。</p>

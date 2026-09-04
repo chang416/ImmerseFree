@@ -1,6 +1,7 @@
 (async function initializeContent(global) {
   const bridge = global.ImmerseFree;
   const t = (text) => bridge.t?.(text) ?? text;
+  const videoSubtitles = global.ImmerseFreeVideoSubtitleCore;
   if (bridge.contentInitialized) return;
   bridge.contentInitialized = true;
   let settings = {};
@@ -74,15 +75,80 @@
           message: result.message ?? t(result.active ? `已翻譯 ${result.count} 段` : "已移除網頁翻譯"),
           result
         }))
-        .catch((error) => sendResponse({ ok: false, error: error.message }));
+        .catch((error) => sendResponse({ ok: false, error: error.message, code: error.code ?? "" }));
       return true;
     }
-
+    // 匯出雙語 docx（W4-1）。只回「原文／譯文」配對加上標題，
+    // 檔案本身在 popup 那邊組（zip 庫在那裡，內容腳本不需要多背一個 vendor）。
+    if (message?.type === "IMMERSEFREE_COLLECT_PAGE_PAIRS") {
+      if (!bridge.pageTranslator?.collectPairs) {
+        sendResponse({ ok: false, error: t("這個分頁還在跑舊版內容腳本，請按 F5 重新整理後再試。") });
+        return false;
+      }
+      sendResponse({
+        ok: true,
+        pairs: bridge.pageTranslator.collectPairs(),
+        title: document.title
+      });
+      return false;
+    }
+    if (message?.type === "IMMERSEFREE_TOGGLE_AI_SUBTITLES" || message?.type === "IMMERSEFREE_TOGGLE_VIDEO_SUBTITLES") {
+      currentSettings()
+        .then((current) => videoSubtitles.toggleAiSubtitles({
+          settings: current,
+          subtitleTranslator: bridge.subtitleTranslator,
+          dualSubtitle: bridge.dualSubtitle
+        }))
+        .then((result) => sendResponse({
+          ok: true,
+          active: result.active,
+          mode: result.mode,
+          message: result.message,
+          result
+        }))
+        .catch((error) => sendResponse({ ok: false, error: error.message, code: error.code ?? "" }));
+      return true;
+    }
+    if (message?.type === "IMMERSEFREE_TOGGLE_DUAL_SUBTITLES") {
+      currentSettings()
+        .then((current) => videoSubtitles.toggleDualSubtitles({
+          isStreamingSite: /(^|\.)(disneyplus\.com|netflix\.com)$/.test(location.hostname),
+          settings: current,
+          subtitleTranslator: bridge.subtitleTranslator,
+          dualSubtitle: bridge.dualSubtitle
+        }))
+        .then((result) => sendResponse({ ok: true, ...result, result }))
+        .catch((error) => sendResponse({ ok: false, error: error.message, code: error.code ?? "" }));
+      return true;
+    }
+    if (message?.type === "IMMERSEFREE_COLLECT_STUDY") {
+      if (!bridge.dualSubtitle) {
+        sendResponse({ ok: false, error: "這個分頁還在跑舊版內容腳本，請按 F5 重新整理後再試。" });
+        return false;
+      }
+      currentSettings()
+        .then((current) => bridge.dualSubtitle.collectStudyPairs(current))
+        .then((result) => sendResponse({ ok: true, ...result, title: document.title, url: location.href }))
+        .catch((error) => sendResponse({ ok: false, error: error.message, code: error.code ?? "" }));
+      return true;
+    }
+    if (message?.type === "IMMERSEFREE_GET_SUBTITLE_STATES") {
+      sendResponse({
+        ok: true,
+        ai: Boolean(bridge.subtitleTranslator?.enabled),
+        dual: Boolean(bridge.dualSubtitle?.getState().active)
+      });
+      return false;
+    }
+    if (message?.type === "IMMERSEFREE_GET_DUAL_SUBTITLE_STATE") {
+      sendResponse({ ok: true, state: bridge.dualSubtitle?.getState() ?? { active: false } });
+      return false;
+    }
     if (message?.type === "IMMERSEFREE_TRANSLATE_SELECTION") {
       const text = message.text || global.getSelection()?.toString();
       bridge.interactionTranslator.translateText(text, { x: innerWidth / 2, y: innerHeight / 3 })
         .then(() => sendResponse({ ok: true, message: t("已翻譯選取文字") }))
-        .catch((error) => sendResponse({ ok: false, error: error.message }));
+        .catch((error) => sendResponse({ ok: false, error: error.message, code: error.code ?? "" }));
       return true;
     }
     if (message?.type === "IMMERSEFREE_SETTINGS_CHANGED") {
@@ -102,4 +168,10 @@
     // The popup and options page surface actionable provider errors.
   }
 
+  // 影片字幕刻意「不」自動啟動。
+  //
+  // 以前只要開啟影片頁就會自動跑 AI 翻譯，等於每支影片都在背景默默消耗額度，
+  // 而使用者根本沒按過任何東西——畫面上突然多一行中文，看起來還很像
+  // 播放器本來就有雙語字幕。要用就按雙軌字幕（免費）或 AI 影片字幕（花額度），
+  // 兩者都有按鍵和快速鍵。
 })(globalThis);

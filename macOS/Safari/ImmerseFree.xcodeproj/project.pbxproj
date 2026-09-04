@@ -453,6 +453,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -465,7 +466,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.7.3;
+				MARKETING_VERSION = 0.8.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -487,6 +488,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -499,7 +501,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.7.3;
+				MARKETING_VERSION = 0.8.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -537,7 +539,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.7.3;
+				MARKETING_VERSION = 0.8.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -578,7 +580,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.7.3;
+				MARKETING_VERSION = 0.8.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,

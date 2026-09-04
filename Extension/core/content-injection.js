@@ -5,12 +5,65 @@
   // executeScript 會整批失敗，使用者按下翻譯時只看得到一句看不懂的錯誤。
   const SCRIPT_FILES = [
     "core/i18n-core.js",
+    // 錯誤碼註冊表（W1-4）。排在 i18n-core 之後：載入時要把每個 code 的英文
+    // 訊息註冊進字典。內容腳本要它，是因為頁面上的失敗訊息必須跟 popup、
+    // 診斷頁講同一句話——同一個 code 不能有兩種說法。
+    "core/diagnostics-core.js",
     "core/page-translation-ui.js",
     "core/page-translation-cache.js",
     "core/language-core.js",
     "core/shared.js",
+    // 批量常數的唯一來源（W2-3）。page-translator.js 與 subtitle-translator.js
+    // 都在 IIFE 開頭就把它抓進 const，所以一定要排在兩者之前；排反了會直接
+    // 丟例外（讀 undefined 的 batchProfile），整批注入失敗。
+    // **這一行漏掉的話，整個網頁／字幕翻譯都起不來**——W2-1 的教訓：
+    // manifest 與這份清單少同步一處，動態注入那條路就整批炸。
+    "core/batch-core.js",
+    // 這兩個要排在字幕顯示層（youtube/streaming）之前：那兩個檔在 IIFE 一開始
+    // 就把換行器抓進 const，晚載入就抓到 undefined，字幕會整句擠成一行。
+    "core/subtitle-linebreak-core.js",
+    "core/subtitle-merge-core.js",
+    "core/video-subtitle-core.js",
+    "core/youtube-subtitle-core.js",
+    "core/subtitle-retry-core.js",
+    "core/streaming-subtitle-core.js",
+    "core/subtitle-format-core.js",
+    "core/subtitle-store-core.js",
+    // 三層上下文與影片術語表：subtitle-translator.js 在 IIFE 開頭就抓進 const，
+    // 一定要排在它前面。術語表通用層（W2-4）又要排在字幕轉接層前面——
+    // 轉接層載入時就會去讀它，順序反了會直接丟例外，整批注入失敗。
+    "core/glossary-core.js",
+    "core/subtitle-glossary-core.js",
+    "core/subtitle-context-core.js",
+    "core/manifest-core.js",
+    // 行內富文本核心（W2-2）。segmentation-core 的 extractSegmentParts 會去讀
+    // globalThis.ImmerseFreeRichTextCore，所以要排在它前面；排反了不會丟例外，
+    // 而是**整站的連結與粗體靜默地全部翻不出來**（退回純文字路徑），
+    // 功能像是沒做——這種失敗比丟例外難查得多。
+    "core/rich-text-core.js",
+    // 分段核心（W2-1）。page-translator.js 在 IIFE 開頭就把它抓進 const，
+    // 排在後面的話抓到 undefined，收集候選時會整個丟例外。
+    "core/segmentation-core.js",
+    // 網站規則庫（W3-2）。page-translator.js 在 IIFE 開頭就把它抓進 const，
+    // 排在後面的話抓到 undefined——那不會丟例外（有 `siteRules ?` 保護），
+    // 而是**所有站台規則靜默失效**：門檻、排除清單、白名單全部沒生效，
+    // 功能像是沒做。這種失敗比丟例外難查得多。
+    // 規則內容本身在 core/site-rules.json，走 manifest 的
+    // web_accessible_resources 由 fetch 讀，不在這份腳本清單裡。
+    "core/site-rules-core.js",
+    // 播放器語境判準（W4-1）。page-translator.js 在 IIFE 開頭就把它抓進 const，
+    // 一定要排在它前面。漏掉不會丟例外（有 `playerContext?.` 保護），而是退回
+    // 只排除嚴格清單——那條退路刻意**不含** [class*='subtitle']／[class*='caption']，
+    // 少排除一塊只是多翻一行；用寬鬆清單當退路才會讓整區文字永遠翻不出來。
+    "core/player-context-core.js",
     "content/page-translator.js",
+    "content/subtitle-translator.js",
     "content/interaction-translator.js",
+    "content/dual-subtitle.js",
+    // 側邊懸浮球（W3-1）。要在 page-translator 之後（點球會呼叫
+    // bridge.pageTranslator）、main.js 之前（習慣上 main 收尾）。
+    // manifest.json 的 content_scripts 清單必須跟這裡完全同步。
+    "content/floating-ball.js",
     "content/main.js"
   ];
 

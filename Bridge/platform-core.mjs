@@ -28,15 +28,15 @@ export function getExecutableCandidates(name, {
   home = os.homedir(),
   bridgeDir = ""
 } = {}) {
+  // 安裝在清單以外的位置（自建、pnpm、asdf、公司統一部署）時，原本只能
+  // 靠 PATH 撞運氣；撞不到就永遠是「尚未安裝 OpenCode CLI」，而且沒有任何
+  // 辦法可以指定。給一個明確的逃生門，錯誤訊息也才說得出下一步。
+  const override = env[`IMMERSEFREE_${String(name).toUpperCase()}_PATH`];
+  if (override) return [override];
+
   const localAppData = env.LOCALAPPDATA || path.win32.join(home, "AppData", "Local");
   const appData = env.APPDATA || path.win32.join(home, "AppData", "Roaming");
   const programFiles = env.ProgramFiles || "C:\\Program Files";
-  // scoop 的 shim 目錄。PATH 通常也找得到，但服務由登入捷徑啟動時拿到的是
-  // 精簡過的 PATH，明確列出來才不會漏掉用 scoop 安裝 CLI 的使用者。
-  const scoopShims = [
-    path.win32.join(home, "scoop", "shims"),
-    ...(env.SCOOP ? [path.win32.join(env.SCOOP, "shims")] : [])
-  ];
 
   if (platform === "win32") {
     if (name === "agy") {
@@ -47,7 +47,6 @@ export function getExecutableCandidates(name, {
         path.win32.join(home, ".antigravity", "bin", "agy.exe"),
         path.win32.join(localAppData, "Programs", "agy", "agy.exe"),
         path.win32.join(localAppData, "Programs", "Antigravity", "agy.exe"),
-        ...scoopShims.map((shims) => path.win32.join(shims, "agy.exe")),
         path.win32.join(programFiles, "agy", "agy.exe"),
         path.win32.join(programFiles, "Antigravity", "agy.exe")
       ];
@@ -60,7 +59,7 @@ export function getExecutableCandidates(name, {
         path.win32.join(localAppData, "Programs", "OpenCode", "opencode.exe"),
         path.win32.join(home, ".opencode", "bin", "opencode.exe"),
         path.win32.join(home, ".local", "bin", "opencode.exe"),
-        ...scoopShims.map((shims) => path.win32.join(shims, "opencode.exe"))
+        path.win32.join(home, "scoop", "shims", "opencode.exe")
       ];
     }
     if (name === "ocr") return [path.win32.join(bridgeDir, "ocr", "ocr.ps1")];

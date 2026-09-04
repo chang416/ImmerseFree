@@ -1,35 +1,382 @@
-:root { color-scheme:light; --bg:#f2f3f1; --surface:#fafaf8; --surface-2:#e8eae8; --ink:#202327; --muted:#6f7479; --line:rgba(32,35,39,.14); --accent:#454c53; font-family:"Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif; background:var(--bg); color:var(--ink); }
-* { box-sizing:border-box; }
-body { margin:0; }
-main { width:min(760px,calc(100% - 32px)); margin:30px auto 72px; }
-.page-header { display:flex; align-items:center; gap:13px; margin:0 0 24px; }
-.page-header img { border-radius:13px; box-shadow:0 9px 24px rgba(42,47,52,.14); }
-h1 { margin:0; font-size:20px; letter-spacing:-.02em; }
-.page-header p { margin:4px 0 0; color:var(--muted); font-size:12px; }
-h2 { margin:0 0 16px; font-size:14px; }
-section { margin-bottom:14px; padding:19px; border:1px solid var(--line); border-radius:16px; background:var(--surface); box-shadow:0 12px 34px rgba(42,47,52,.08); }
-label { display:grid; gap:7px; margin-bottom:14px; color:var(--muted); font-size:12px; font-weight:560; }
-label:last-child { margin-bottom:0; }
-input,select,textarea,button { font:inherit; }
-input,select,textarea { width:100%; min-height:39px; padding:8px 11px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:var(--surface-2); outline:none; }
-textarea { resize:vertical; line-height:1.55; }
-input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible { outline:3px solid rgba(69,76,83,.28); outline-offset:2px; }
-.provider-fields { margin-top:9px; padding-top:16px; border-top:1px solid var(--line); }
-.hint { margin:-3px 0 0; color:var(--muted); font-size:11px; line-height:1.55; }
-.language-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 16px; }
-.language-grid h2 { grid-column:1 / -1; }
-.check { display:flex; align-items:center; gap:10px; min-height:28px; margin:0; color:var(--ink); font-size:13px; font-weight:500; }
-.check input { width:17px; min-height:17px; margin:0; accent-color:var(--accent); }
-.actions { position:sticky; bottom:16px; display:flex; align-items:center; gap:14px; padding:10px; border:1px solid var(--line); border-radius:14px; background:color-mix(in srgb,var(--surface) 92%,transparent); box-shadow:0 16px 46px rgba(42,47,52,.15); backdrop-filter:blur(18px); }
-button { min-height:42px; padding:0 18px; border:0; border-radius:11px; color:#f7f7f5; background:var(--accent); cursor:pointer; font-weight:650; transition:background 180ms cubic-bezier(.16,1,.3,1),transform 180ms cubic-bezier(.16,1,.3,1); }
-button:hover { background:#353b41; transform:translateY(-1px); }
-button:disabled { cursor:wait; opacity:.65; }
-#status { color:var(--muted); font-size:12px; }
-#status[data-state="error"] { color:#744a4a; }
-#status[data-state="success"] { color:#3f654f; }
-@media (max-width:560px) { .language-grid { grid-template-columns:1fr; } .actions { align-items:stretch; flex-direction:column; } }
-@media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition-duration:0s!important; } }
-.transfer-actions { display:flex; gap:12px; flex-wrap:wrap; }
+/* ImmerseFree 選項頁
+   ─────────────────────────────────────────────────────────────────────
+   跟 popup 同一套設計系統，只有字級整體放大一階（這裡是整頁，不是彈窗）：
+
+   間距   4px 網格：--s1 4 / --s2 8 / --s3 12 / --s4 16 / --s5 20 / --s6 24
+   字級   頁名 --t-title 20；區塊標題 --t-head 16；正文 --t-body 14；輔助 --t-cap 12
+   圓角   跟 popup 一樣只有三個值：--r-card 12 / --r-control 10 / --r-pill
+   分隔   一律 1px 細邊，全檔沒有任何 box-shadow——細邊與陰影二選一，不混用
+   控制項 一律比所在容器「差一階」：卡片上的輸入框用 --surface-2，
+          頁面底色上的浮動列用 --surface。這樣不必靠陰影也看得出層次。
+   按鈕   一頁只有一顆主要按鈕（儲存並測試）。其餘全部是次要樣式，
+          破壞性動作（清空、清除）用文字顏色標，不用第二種填色。 */
+
+:root {
+  color-scheme: light;
+
+  /* 色彩 */
+  --bg: #f1f2f0;
+  --surface: #fbfbf9;
+  --surface-2: #e7e9e6;
+  --ink: #1e2125;
+  --muted: #5c6166;
+  --line: rgba(30, 33, 37, .14);
+  --line-strong: rgba(30, 33, 37, .30);
+  --accent: #3f464d;
+  --accent-hover: #31373d;
+  --accent-pressed: #262b30;
+  --accent-soft: rgba(63, 70, 77, .10);
+  --on-accent: #f8f8f6;
+  --danger: #8a4a4a;
+  --danger-soft: #fbf5f5;
+  --danger-line: #dfc7c7;
+  --ok: #3f654f;
+  --focus: rgba(63, 70, 77, .30);
+
+  /* 間距 */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s7: 32px;
+
+  /* 字級與行高 */
+  --t-title: 20px;
+  --t-head: 16px;
+  --t-body: 14px;
+  --t-cap: 12px;
+  --lh-title: 1.25;
+  --lh-body: 1.5;
+  --lh-cap: 1.55;
+  --lh-tight: 1.2;
+
+  /* 圓角 */
+  --r-card: 12px;
+  --r-control: 10px;
+  --r-pill: 999px;
+
+  /* 元件高度 */
+  --h-field: 38px;
+  --h-button: 38px;
+  --h-button-sm: 32px;
+
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --dur: 180ms;
+
+  font-family: "Segoe UI", "Microsoft JhengHei UI", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-size: var(--t-body); line-height: var(--lh-body); }
+main { width: min(760px, calc(100% - var(--s7))); margin: var(--s7) auto var(--s7); }
+input, select, textarea, button { font: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* 面板用 hidden 屬性控制顯示，但下面給了它們 display:grid——作者樣式的
+   display 會蓋過瀏覽器內建的 [hidden]{display:none}，於是 hidden 加了也沒用，
+   一開頁三個面板會全部疊在一起。JS 完全正常、屬性也真的加上去了，
+   所以這種壞法從程式碼那一側看不出來。這一行把它補回去。 */
+[hidden] { display: none !important; }
+
+/* ── 頁首與分頁 ─────────────────────────────────────────────────────── */
+.page-header { display: flex; align-items: center; gap: var(--s3); margin: 0 0 var(--s5); }
+.page-header img { border-radius: var(--r-card); }
+h1 { margin: 0; font-size: var(--t-title); line-height: var(--lh-title); letter-spacing: -.02em; font-weight: 700; }
+.page-header p { margin: var(--s1) 0 0; color: var(--muted); font-size: var(--t-cap); line-height: var(--lh-tight); }
+
+.tabs { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0 0 var(--s4); }
+.tabs button {
+  min-height: var(--h-button-sm);
+  padding: 0 var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--muted);
+  background: var(--surface);
+  font-size: var(--t-cap);
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.tabs button:hover { border-color: var(--line-strong); color: var(--ink); background: var(--surface-2); }
+.tabs button[aria-selected="true"] { border-color: var(--accent); color: var(--on-accent); background: var(--accent); }
+
+/* ── 卡片與區塊節奏 ───────────────────────────────────────────────────
+   每一張卡就是一個 grid，子元素之間永遠是同一個間距（--s4），
+   所有子元素自己的 margin 一律歸零——版面高低差只由這一個變數決定。 */
+form#settings-form { display: grid; gap: var(--s3); }
+section {
+  display: grid;
+  gap: var(--s4);
+  align-content: start;
+  padding: var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+h2 { margin: 0; font-size: var(--t-head); line-height: var(--lh-tight); font-weight: 700; }
+h3 {
+  margin: var(--s1) 0 0;
+  padding-top: var(--s4);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-head);
+  line-height: var(--lh-tight);
+  font-weight: 650;
+}
+.hint { margin: 0; color: var(--muted); font-size: var(--t-cap); line-height: var(--lh-cap); }
+/* 說明文字屬於它上面那個東西，所以貼近一階（16 → 8）。
+   兩段說明連在一起時不套這條，兩段之間保持正常段距。 */
+h2 + .hint, label + .hint, .provider-fields + .hint, ol + .hint, div + .hint, table + .hint,
+.glossary-domains + .hint, .diagnostics-scroll + .hint { margin-top: calc(var(--s2) - var(--s4)); }
+.hint + .hint { margin-top: 0; }
+code {
+  padding: 0 var(--s1);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .92em;
+}
+
+/* ── 表單欄位 ─────────────────────────────────────────────────────────
+   一律「說明文字在上、控制項在下」，兩者之間固定 8px。
+   原本標籤與輸入框的距離每一區都不一樣，看起來就是散的。 */
+label {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-cap);
+  line-height: var(--lh-tight);
+  font-weight: 650;
+}
+input, select, textarea {
+  width: 100%;
+  min-height: var(--h-field);
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  color: var(--ink);
+  background: var(--surface-2);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-weight: 400;
+  outline: none;
+  transition: border-color var(--dur) var(--ease);
+}
+input:hover, select:hover, textarea:hover { border-color: var(--line-strong); }
+select { cursor: pointer; }
+textarea { resize: vertical; }
+.provider-fields { display: grid; gap: var(--s4); padding-top: var(--s4); border-top: 1px solid var(--line); }
+.language-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.language-grid h2, .language-grid > .hint { grid-column: 1 / -1; }
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  color: var(--ink);
+  font-size: var(--t-body);
+  font-weight: 400;
+}
+.check input { width: 17px; min-height: 17px; margin: 0; accent-color: var(--accent); }
+
+/* ── 按鈕：一頁只有一顆主要按鈕 ───────────────────────────────────────
+   其餘一律次要樣式。原本每一顆都是深色填滿，滿頁都在喊「按我」，
+   結果就是沒有一顆看起來重要。 */
+button {
+  min-height: var(--h-button);
+  padding: 0 var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  color: var(--ink);
+  background: var(--surface);
+  font-size: var(--t-cap);
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+button:hover { border-color: var(--line-strong); background: var(--surface-2); }
+/* 卡片是 grid，直接放進卡片的按鈕會被拉成整列寬——一顆「抓取模型清單」
+   長得跟主要動作一樣寬，看起來就是這一區的主角。按鈕照內容寬就好。 */
+section > button, .provider-fields > button { justify-self: start; }
+button:active { transform: scale(.98); }
+button:disabled { cursor: wait; opacity: .55; }
+#save-test {
+  border-color: var(--accent);
+  color: var(--on-accent);
+  background: var(--accent);
+  padding: 0 var(--s5);
+}
+#save-test:hover { border-color: var(--accent-hover); background: var(--accent-hover); }
+#save-test:active { background: var(--accent-pressed); }
+#glossary-clear, #site-rules-clear, #diagnostics-clear { color: var(--danger); }
+#glossary-clear:hover, #site-rules-clear:hover, #diagnostics-clear:hover { border-color: var(--danger); }
+
+/* 存檔列是 sticky：長表單捲到哪裡都按得到「儲存並測試」。底色一律不透明——
+   半透明會讓被蓋住的那一列透出殘影，實測在引擎清單上正好切掉一整列，
+   看起來就是跑版。要嘛你看得到，要嘛你看不到，不要給使用者一個殘影去猜。 */
+.actions {
+  position: sticky;
+  bottom: var(--s4);
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+/* 狀態訊息可能很長（「本機模型服務無法連線（HTTP 403）」），要能換行而不是
+   把存檔列撐爆。min-width:0 是 flex 子項換行的前提，少了它 flex 會拒絕縮。 */
+#status { flex: 1 1 auto; min-width: 0; color: var(--muted); font-size: var(--t-cap); line-height: var(--lh-cap); }
+#status[data-state="error"], #diagnostics-note[data-state="error"],
+#glossary-note[data-state="error"], #site-rules-note[data-state="error"] { color: var(--danger); }
+#status[data-state="success"], #diagnostics-note[data-state="success"],
+#glossary-note[data-state="success"], #site-rules-note[data-state="success"] { color: var(--ok); }
+
+.transfer-actions, .diagnostics-actions, .glossary-actions, .site-rules-actions {
+  display: flex;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+/* ── 備援順序清單 ─────────────────────────────────────────────────── */
+.provider-order { display: grid; gap: var(--s2); margin: 0; padding: 0; list-style: none; counter-reset: provider-order; }
+.provider-order li {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+  font-size: var(--t-body);
+  counter-increment: provider-order;
+}
+.provider-order li::before { content: counter(provider-order); min-width: 18px; color: var(--muted); font-size: var(--t-cap); font-weight: 650; font-variant-numeric: tabular-nums; }
+.provider-order .provider-order-name { flex: 1; min-width: 0; }
+.provider-order .provider-order-state { color: var(--muted); font-size: var(--t-cap); }
+.provider-order button { min-height: 28px; padding: 0 var(--s2); }
+.provider-order button:disabled { cursor: default; opacity: .35; }
+
+/* ── 分頁面板 ─────────────────────────────────────────────────────── */
+#panel-glossary, #panel-diagnostics, #panel-site-rules { margin: 0; }
+
+/* ── 表格：自己捲，整頁不橫向捲 ───────────────────────────────────── */
+.diagnostics-scroll, .glossary-scroll, .site-rules-scroll {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+.glossary-scroll, .site-rules-scroll { max-height: 320px; }
+.diagnostics-scroll table, .glossary-scroll table, .site-rules-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-cap);
+  line-height: var(--lh-cap);
+}
+.diagnostics-scroll th, .diagnostics-scroll td,
+.glossary-scroll th, .glossary-scroll td,
+.site-rules-scroll th, .site-rules-scroll td {
+  padding: var(--s2) var(--s3);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.diagnostics-scroll th, .glossary-scroll th, .site-rules-scroll th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: var(--muted);
+  background: var(--surface);
+  font-weight: 650;
+  white-space: nowrap;
+}
+.diagnostics-scroll tr:last-child td, .glossary-scroll tr:last-child td, .site-rules-scroll tr:last-child td { border-bottom: 0; }
+.diagnostics-scroll td, .site-rules-scroll td { vertical-align: top; }
+.glossary-scroll td { vertical-align: middle; }
+.diagnostics-scroll td { white-space: nowrap; }
+/* 錯誤碼欄要能斷行。未註冊的碼會長成 UNREGISTERED:BRIDGE_UNREACHABLE，
+   配上 nowrap 會把整張表撐得比容器寬，於是最右邊的「說明與下一步」——
+   也就是這張表唯一告訴使用者該怎麼辦的那一欄——整欄被切在框外。
+   min-width 不能省：overflow-wrap:anywhere 會讓這一欄的 min-content 寬度
+   變成「一個字元」，自動表格佈局就會把它壓到最窄，UNREGISTERED:… 被折成
+   四行。給一個下限，它才會折成兩行而不是碎掉。 */
+.diagnostics-scroll td.diagnostics-code { white-space: normal; overflow-wrap: anywhere; min-width: 17ch; }
+.diagnostics-scroll td.diagnostics-message { white-space: normal; }
+.diagnostics-scroll tbody tr[data-severity="error"] td.diagnostics-code,
+.diagnostics-scroll tbody tr[data-severity="critical"] td.diagnostics-code { color: var(--danger); font-weight: 650; }
+.diagnostics-scroll tbody tr[data-severity="info"] td.diagnostics-code { color: var(--ok); }
+.diagnostics-empty { color: var(--muted); }
+#diagnostics-report { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: var(--t-cap); }
+#diagnostics-note, #glossary-note, #site-rules-note { color: var(--muted); font-size: var(--t-cap); }
+
+/* ── 術語表分頁 ───────────────────────────────────────────────────── */
+.glossary-domains { display: flex; gap: var(--s4); flex-wrap: wrap; }
+.glossary-add { display: grid; grid-template-columns: 1fr 1fr auto; gap: var(--s2); align-items: center; }
+.glossary-add button { white-space: nowrap; }
+.glossary-scroll td input[type="text"] { min-height: 30px; padding: var(--s1) var(--s2); font-size: var(--t-cap); }
+.glossary-scroll td input[type="checkbox"] { width: 16px; min-height: 16px; margin: 0; accent-color: var(--accent); }
+.glossary-scroll td button { min-height: 28px; padding: 0 var(--s2); }
+.glossary-scroll tbody tr[data-disabled="true"] td { opacity: .45; }
+.glossary-scroll td.glossary-source { font-weight: 650; white-space: nowrap; }
+
+/* ── 網站規則分頁 ─────────────────────────────────────────────────── */
+.site-rules-scroll td:nth-child(3) { white-space: normal; }
+#userSiteRules { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: var(--t-cap); }
+/* 錯誤清單一行一條，寬度超出就自己捲——訊息裡有選擇器字串，
+   硬換行會把 `div.a > p` 折在箭頭中間，看起來像兩個不同的選擇器。 */
+#site-rules-errors {
+  margin: 0;
+  padding: var(--s3);
+  border: 1px solid var(--danger-line);
+  border-radius: var(--r-control);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: var(--t-cap);
+  line-height: var(--lh-cap);
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ── 雙語顯示主題預覽 ─────────────────────────────────────────────────
+   卡片內距與字級走同一套變數，跟 popup 的卡片同系統。
+   選中不用陰影當光暈，就是換邊框顏色＋淡填色。 */
+.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: var(--s2); }
+.theme-card {
+  position: relative;
+  display: grid;
+  gap: var(--s2);
+  align-content: start;
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.theme-card:hover { border-color: var(--line-strong); }
+.theme-card:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.theme-card input[type="radio"] { position: absolute; inset-inline-start: var(--s3); inset-block-start: var(--s3); width: 14px; min-height: 14px; margin: 0; accent-color: var(--accent); }
+.theme-card-name { padding-inline-start: var(--s6); font-size: var(--t-cap); font-weight: 650; line-height: var(--lh-tight); }
+/* 預覽區給固定的內文字級與行高基準，content.css 的主題規則疊在上面。 */
+.theme-card-preview { padding: var(--s2); border-radius: var(--r-control); font-size: var(--t-cap); line-height: var(--lh-cap); }
+.theme-card-source { margin: 0 0 var(--s1); color: var(--muted); }
+.theme-card-preview .immersefree-page-translation { margin-block: 0 !important; }
+
+/* ── 窄視窗 ───────────────────────────────────────────────────────────
+   存檔列不改成直排：整條會長到 95px，蓋掉底下三整列引擎清單。
+   改成「放得下就同列、放不下才換行」，狀態列空著時高度跟寬視窗一樣。 */
+@media (max-width: 560px) {
+  main { width: calc(100% - var(--s4)); margin: var(--s4) auto; }
+  section { padding: var(--s4); }
+  .actions { flex-wrap: wrap; }
+  .actions button { flex: 0 0 auto; }
+  #status { flex: 1 1 160px; }
+  .glossary-add { grid-template-columns: 1fr; }
+  .theme-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }
 .project-info h2:not(:first-child) { margin-top:22px; }
 .project-info p { margin:0; color:var(--muted); font-size:12px; line-height:1.65; }
 .support-link { display:inline-flex; align-items:center; min-height:38px; margin-top:14px; padding:0 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:var(--surface-2); font-size:12px; font-weight:650; text-decoration:none; }

@@ -1,5 +1,7 @@
 (function initializePageTranslationCache(global) {
-  const VERSION = 1;
+  // 2 = 加入 glossaryHash 維度之後的鍵格式。版本一跳，hydrate 就會整份丟掉
+  // 舊快取——舊的 key 用新公式再也算不出來，留著只是佔配額。
+  const VERSION = 2;
   const PAGE_TRANSLATION_CACHE_STORAGE_KEY = "immerseFreePageTranslationCache";
   const KEY_PATTERN = new RegExp(`^p${VERSION}:[0-9a-f]{16}$`, "i");
   const DEFAULT_LIMITS = Object.freeze({
@@ -51,7 +53,30 @@
   function selectedModel(settings = {}) {
     if (settings.provider === "opencode") return settings.opencodeModel;
     if (settings.provider === "antigravity") return settings.antigravityModel;
+    // 自訂端點漏了這一支，換模型時 key 不會變（拿的是 geminiModel），
+    // 使用者換完模型還會撿到舊模型的譯文。背景頁的 selectedModel 有這一支，
+    // 兩邊必須一致。
+    if (settings.provider === "custom") return settings.customModel;
     return settings.geminiModel;
+  }
+
+  // 術語表指紋。同一組術語不論陣列順序都要得到同一個值，否則 key 會因為
+  // 順序抖動而白白 miss；反過來，只要有一條術語的譯法改了就必須變。
+  function normalizeGlossaryTerms(value) {
+    if (!Array.isArray(value)) return [];
+    const unique = new Map();
+    for (const item of value) {
+      const source = normalizePageSource(item?.source ?? "");
+      const target = normalizePageSource(item?.target ?? "");
+      if (!source || !target) continue;
+      unique.set(`${source.toLowerCase()}\u241f${target}`, `${source}\u241f${target}`);
+    }
+    return [...unique.values()].sort();
+  }
+
+  function glossaryHash(value) {
+    const terms = normalizeGlossaryTerms(value);
+    return terms.length ? fingerprint(terms.join("\u241e")) : "";
   }
 
   function keySettings(settings = {}) {
@@ -64,7 +89,12 @@
       translationStyle: String(settings.translationStyle ?? "natural").trim(),
       provider: String(settings.provider ?? "").trim(),
       model: String(selectedModel(settings) ?? "").trim(),
-      customPrompt: normalizePageSource(settings.customPrompt ?? "")
+      customPrompt: normalizePageSource(settings.customPrompt ?? ""),
+      // W1-3 先開的預留維度，W2-4 已接上真值：網頁／PDF／劃詞的術語表由背景頁
+      // 挑好之後掛進 scope.glossary（見 background.js 的 cacheScope）。沒有命中
+      // 任何術語的段落算出來仍是空字串，一般網頁的命中率不受影響；改了某一條
+      // 術語的譯法，只有用得到那條術語的段落會 miss、重翻一次。
+      glossaryHash: glossaryHash(settings.glossary)
     };
   }
 
@@ -76,6 +106,66 @@
 
   function sourceHash(sourceText) {
     return fingerprint(normalizePageSource(sourceText));
+  }
+
+  // ── 請求層快取鍵（背景頁的記憶體快取用）──────────────────────
+  //
+  // 設計原則：內容為 key、設定為 namespace。只有「會影響譯文、而且同一句話
+  // 再遇到時仍然相同」的維度才進 key：
+  //   設定面（keySettings）provider／model／來源語言／目標語言／風格／
+  //     自訂 prompt／術語表指紋
+  //   請求面（scope）mode、strictTargetLanguage、這一句有沒有被要求壓縮、
+  //     字幕模式的 videoId
+  //
+  // 刻意不進 key 的是 context.previous／context.dialogue／title／影片簡介
+  // 這些每一批都不一樣的欄位。原本的背景層 key 把整個 context
+  // JSON.stringify 進去，而對話脈絡每批都變，於是同一句話永遠算出新的 key、
+  // 永遠 miss——快取存在但命中率趨近 0，而且完全不會報錯。
+  //
+  // 取捨（刻意接受）：拿掉對話脈絡維度之後，「同一句話在不同上下文可能被翻成
+  // 不同譯文」這件事會被快取抹平，第二次出現時直接沿用第一次的譯文。快取的
+  // 單位因此是「同設定、同影片、同一句原文」。這是划算的：省下來的是整批
+  // 重打，而字幕裡重複出現的短句本來就該譯得一致。
+  //
+  // 字幕模式一定要帶 videoId：兩支不同影片的 "Let's go." 是兩件事，少了這個
+  // 維度就會互相污染（舊版靠 context 序列化半遮掩，碰撞其實一直存在）。
+  // 反過來網頁模式一定不能帶，否則 SPA 換路由、同一段文字換網址就會重翻。
+  function requestScope(scope = {}) {
+    const mode = String(scope.mode ?? "page").trim().slice(0, 20) || "page";
+    const normalized = {
+      mode,
+      strict: Boolean(scope.strictTargetLanguage),
+      compact: Boolean(scope.compact),
+      glossaryHash: glossaryHash(scope.glossary)
+    };
+    // 富文本維度（W2-2）。含行內佔位符的段落與同一句純文字是兩件事：
+    // prompt 不同（多了佔位符規則）、回來的譯文形狀也不同。共用同一格的話，
+    // 純文字譯文會被套進富文本還原流程、當場硬校驗失敗退回——功能靜默失效。
+    //
+    // **只有為真時才加這個欄位**（與 videoId 同一種寫法）。無條件加上去的話，
+    // 每一個既有的純文字快取鍵都會算出新值，等於把整份快取一次作廢——
+    // 那是使用者看得到的「明明翻過卻又重翻一次」，而且沒有任何錯誤訊息。
+    if (scope.rich) normalized.rich = true;
+    // 預設術語庫維度（波 2 收尾）。背景頁不需要它——它手上有實際命中的那幾條，
+    // 全部進了 glossaryHash。內容腳本自己的記憶體快取沒有預設庫那份資料
+    // （536 條放進每一個網頁的內容腳本太浪費），只知道「開了哪幾個領域」，
+    // 所以用領域清單當那一份的指紋：勾選一變就必須重翻，維度本身很粗但方向
+    // 是對的（寧可多翻一次，也不要改了設定卻沿用舊譯文）。
+    //
+    // 同樣**只有非空時才加**：沒有這個欄位的呼叫端算出來的 key 與以前逐字相同。
+    const presetDomains = (Array.isArray(scope.presetDomains) ? scope.presetDomains : [])
+      .map((id) => String(id ?? "").trim())
+      .filter(Boolean)
+      .sort();
+    if (presetDomains.length) normalized.presetDomains = presetDomains.join(",");
+    if (mode === "subtitle") normalized.videoId = String(scope.videoId ?? "").trim().slice(0, 160);
+    return normalized;
+  }
+
+  function buildTranslationRequestKey(sourceText, settings = {}, scope = {}) {
+    const source = normalizePageSource(sourceText);
+    const config = keySettings(settings);
+    return `r${VERSION}:${fingerprint(JSON.stringify({ source, config, scope: requestScope(scope) }))}`;
   }
 
   function toLimits(value = {}) {
@@ -313,7 +403,9 @@
     DEFAULT_LIMITS,
     PAGE_TRANSLATION_CACHE_STORAGE_KEY,
     normalizePageSource,
+    glossaryHash,
     buildPageTranslationKey,
+    buildTranslationRequestKey,
     createPageTranslationEntry,
     hydratePageTranslationCache,
     serializePageTranslationCache,

@@ -1,6 +1,10 @@
 import * as pdfjs from "../vendor/pdfjs/pdf.mjs";
 import "../core/i18n-core.js";
 import "../core/bridge-core.js";
+// 批量常數（W2-3）。PDF 這條原本自己寫死 8——本波的靜態掃描就是為了抓出
+// 這種「文件說有三處、其實有四處」的漏網點。它跟其他三處一樣走 batch-core，
+// 只保留自己的字元預算（PDF 的一個 unit 最長 1800 字，比網頁段落長）。
+import "../core/batch-core.js";
 import { getSettings, saveSettings } from "../core/settings.js";
 import { extractPdfFileId, pdfFetchCandidates } from "../core/pdf-source.js";
 import { hasUsablePdfText } from "../core/pdf-layout.js";
@@ -16,6 +20,9 @@ import {
 import { pdfOpenErrorMessage, pdfTranslationErrorMessage, scannedPdfMessage } from "../core/pdf-support.js";
 
 const api = globalThis.browser ?? globalThis.chrome;
+// PDF 走網頁那組批量（16 項），字元預算沿用它原本的 8000——PDF 的一個
+// 翻譯單位最長 1800 字，用網頁的 6000 會讓一批只放得下三段。
+const PDF_BATCH = globalThis.ImmerseFreeBatchCore.batchProfile("pdf", { maxChars: 8000 });
 pdfjs.GlobalWorkerOptions.workerSrc = api.runtime.getURL("vendor/pdfjs/pdf.worker.mjs");
 
 const pagesRoot = document.querySelector("#pages");
@@ -23,6 +30,7 @@ const emptyState = document.querySelector("#empty-state");
 const fileInput = document.querySelector("#file-input");
 const provider = document.querySelector("#provider");
 const translateAllButton = document.querySelector("#translate-all");
+const exportPdfButton = document.querySelector("#export-pdf");
 const progress = document.querySelector("#progress");
 const progressText = document.querySelector("#progress-text");
 const documentProgress = document.querySelector("#document-progress");
@@ -42,6 +50,7 @@ document.querySelector("#choose-file").addEventListener("click", () => fileInput
 document.querySelector("#empty-choose").addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", () => fileInput.files[0] && loadFile(fileInput.files[0]));
 translateAllButton.addEventListener("click", translateAll);
+exportPdfButton.addEventListener("click", exportBilingualPdf);
 document.querySelector("#cancel").addEventListener("click", () => { cancelled = true; });
 document.querySelector("#view-mode").addEventListener("click", toggleTranslationOnly);
 document.addEventListener("dragover", (event) => { event.preventDefault(); });
@@ -103,6 +112,7 @@ async function openDocument(source) {
   emptyState.hidden = true;
   pdfDocument = await pdfjs.getDocument(source).promise;
   translateAllButton.disabled = false;
+  exportPdfButton.disabled = false;
   for (let number=1; number<=pdfDocument.numPages; number+=1) pagesRoot.append(createPageShell(number));
   observePages();
 }
@@ -321,7 +331,7 @@ async function translatePage(number) {
     let completed=0;
     const units=buildPdfTranslationUnits(pending,1800);
     const translatedUnits=new Map();
-    for (const batch of makeBatches(units,8,8000)) {
+    for (const batch of makeBatches(units,PDF_BATCH.maxItems,PDF_BATCH.maxChars)) {
       if (cancelled) break;
       for (const unit of batch) setLayerState(number,unit.layerId,"pending");
       const prepared=batch.map((unit) => protectPdfNumbers(unit.sourceText));
@@ -459,12 +469,56 @@ function reset() {
   history.length=0;
   pdfDocument=undefined;
   translateAllButton.disabled=true;
+  exportPdfButton.disabled=true;
   document.body.classList.remove("translation-only");
   document.querySelector("#view-mode").textContent="只看譯文";
 }
 
+// ------------------------------------------------------------------ 匯出雙語 PDF（W4-1）
+//
+// 走瀏覽器自己的列印管線（版面規則與取捨全在 reader/pdf.css 的 @media print
+// 註解裡）。這裡只負責一件在 CSS 做不到的事：**先把每一頁都算出來**。
+//
+// 頁面是懶載入的（observePages 的 IntersectionObserver，只算捲到眼前的頁），
+// 直接按列印會印出一疊「正在讀取 PDF 文字層」的佔位文字——而且使用者要到
+// 看到輸出才會發現。所以先逐頁 renderPage()，再開列印對話框。
+async function exportBilingualPdf() {
+  if (!pdfDocument) return;
+  exportPdfButton.disabled=true;
+  progress.hidden=false;
+  documentProgress.max=pdfDocument.numPages;
+  documentProgress.value=0;
+  const failures=[];
+  try {
+    for (let number=1; number<=pdfDocument.numPages; number+=1) {
+      progressText.textContent=`正在準備列印版面 ${number} / ${pdfDocument.numPages} 頁`;
+      try {
+        await renderPage(number);
+      } catch {
+        // 掃描檔或抽不到文字層的頁：那一頁只印得到原始頁面影像，
+        // 不該讓整份匯出停下來。
+        failures.push(number);
+      }
+      documentProgress.value=number;
+    }
+    // 列印版面是單欄整頁寬，遮蓋層的寬度變了，字級要重算一次——
+    // 少了這一步，印出來的譯文會沿用並排模式的字級（偏小、留一大片空白）。
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    document.querySelectorAll('.translated-box[data-state="ready"]').forEach(fitReplicaText);
+    progressText.textContent=failures.length
+      ? `第 ${failures.join(", ")} 頁沒有可翻譯的文字層，仍會印出原始頁面`
+      : "版面已備妥，請在列印對話框選擇「另存為 PDF」";
+    window.print();
+  } finally {
+    exportPdfButton.disabled=false;
+    // 列印對話框關掉後畫面回到並排模式，字級要再算回來。
+    requestAnimationFrame(() => document.querySelectorAll('.translated-box[data-state="ready"]').forEach(fitReplicaText));
+  }
+}
+
 function showEmptyError(message) {
   translateAllButton.disabled=true;
+  exportPdfButton.disabled=true;
   emptyState.hidden=false;
   emptyState.querySelector("h1").textContent="無法開啟 PDF";
   emptyState.querySelector("p").textContent=message;

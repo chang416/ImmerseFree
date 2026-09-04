@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>影集學習</title>
+  <link rel="stylesheet" href="study.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <h1>影集學習</h1>
+        <p id="episode">讀取字幕中…</p>
+      </div>
+      <span id="line-count" class="pill"></span>
+    </header>
+
+    <section id="setup" class="card">
+      <h2>你的程度</h2>
+      <p class="hint">分數只用來換算 CEFR 與教材難度。</p>
+
+      <div class="choices" role="radiogroup" aria-label="程度依據">
+        <label class="choice"><input type="radio" name="kind" value="beginner" checked><span><strong>純新手</strong><small>沒有基礎，從最高頻的字開始</small></span></label>
+        <label class="choice"><input type="radio" name="kind" value="toeic"><span><strong>多益</strong><small>TOEIC 聽讀總分</small></span></label>
+        <label class="choice"><input type="radio" name="kind" value="ielts"><span><strong>雅思</strong><small>IELTS Overall</small></span></label>
+        <label class="choice"><input type="radio" name="kind" value="gept"><span><strong>全民英檢</strong><small>已通過的級數</small></span></label>
+      </div>
+
+      <div id="field-toeic" class="field" hidden>
+        <label>多益分數<input id="toeic" type="number" min="10" max="990" step="5" value="600"></label>
+      </div>
+      <div id="field-ielts" class="field" hidden>
+        <label>雅思分數<input id="ielts" type="number" min="0" max="9" step="0.5" value="6"></label>
+      </div>
+      <div id="field-gept" class="field" hidden>
+        <label>級數
+          <select id="gept">
+            <option value="初級">初級</option>
+            <option value="中級" selected>中級</option>
+            <option value="中高級">中高級</option>
+            <option value="高級">高級</option>
+          </select>
+        </label>
+      </div>
+
+      <p id="level-preview" class="preview"></p>
+
+      <button id="generate" class="primary" type="button" disabled>生成教材</button>
+      <p id="status" class="status"></p>
+      <div id="progress" class="track" hidden><div id="progress-fill" class="fill"></div></div>
+    </section>
+
+    <section id="result" hidden>
+      <div class="result-head">
+        <h2>單字</h2>
+        <span id="vocab-count" class="pill"></span>
+      </div>
+      <div id="vocabulary" class="grid"></div>
+
+      <div class="result-head">
+        <h2>實用句型</h2>
+        <span id="pattern-count" class="pill"></span>
+      </div>
+      <div id="patterns" class="grid"></div>
+
+      <footer>
+        <button id="copy" class="secondary" type="button">複製成文字</button>
+        <button id="regenerate" class="secondary" type="button">換個程度重做</button>
+      </footer>
+    </section>
+  </main>
+  <script type="module" src="i18n.js"></script>
+  <script type="module" src="study.js"></script>
+</body>
+</html>

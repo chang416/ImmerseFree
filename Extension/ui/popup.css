@@ -1,89 +1,456 @@
+/* ImmerseFree popup
+   ─────────────────────────────────────────────────────────────────────
+   設計系統（整份檔案只准用這裡的變數，不要再散落魔法數字）：
+
+   間距   4px 網格：--s1 4 / --s2 8 / --s3 12 / --s4 16
+   字級   只有三級：--t-title 15 / --t-body 13 / --t-cap 11
+   圓角   只有三個值：--r-card 12（卡片）/ --r-control 10（控制項）/ --r-pill（膠囊）
+   分隔   一律 1px 細邊，全檔沒有任何 box-shadow——細邊與陰影二選一，不混用
+   高度   元件高度也走變數（--h-*），要調版面高度改這幾個值就好
+
+   popup 視窗高度上限 600px，這份版面壓在 560px 以內（影片區六列全開、
+   進度列與狀態列都出現的最壞情況也算在內），所以任何情況都不必捲動。
+   術語表／指認面板是「按了才展開」的暫時面板，允許它們把 popup 撐高。 */
+
 :root {
   color-scheme: light;
-  --bg: #f2f3f1;
-  --surface: #fafaf8;
-  --surface-2: #e8eae8;
-  --ink: #202327;
-  --muted: #6f7479;
-  --line: rgba(32, 35, 39, .14);
-  --accent: #454c53;
-  --accent-hover: #353b41;
-  --accent-pressed: #282d32;
-  --danger: #744a4a;
-  font-family: "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif;
+
+  /* 色彩 */
+  --bg: #f1f2f0;
+  --surface: #fbfbf9;
+  --surface-2: #e7e9e6;
+  --ink: #1e2125;
+  --muted: #5c6166;
+  --line: rgba(30, 33, 37, .14);
+  --line-strong: rgba(30, 33, 37, .30);
+  --accent: #3f464d;
+  --accent-hover: #31373d;
+  --accent-pressed: #262b30;
+  --accent-soft: rgba(63, 70, 77, .10);
+  --on-accent: #f8f8f6;
+  --danger: #8a4a4a;
+  --ok: #3f654f;
+  --focus: rgba(63, 70, 77, .30);
+  --track: rgba(30, 33, 37, .11);
+
+  /* 間距 */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+
+  /* 字級與行高 */
+  --t-title: 15px;
+  --t-body: 13px;
+  --t-cap: 11px;
+  --lh-title: 1.2;
+  --lh-body: 1.3;
+  --lh-cap: 1.3;
+  --lh-tight: 1.15;
+
+  /* 圓角 */
+  --r-card: 12px;
+  --r-control: 10px;
+  --r-pill: 999px;
+
+  /* 元件高度 */
+  --h-field: 28px;
+  --h-cta: 38px;
+  --h-seg: 24px;
+  --h-tile: 56px;
+  --h-mode: 52px;
+  --h-row: 26px;
+  --h-chip: 22px;
+  --h-icon: 28px;
+
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --dur: 180ms;
+
+  font-family: "Segoe UI", "Microsoft JhengHei UI", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; width: 388px; background: var(--bg); color: var(--ink); }
-button, select { font: inherit; }
+body { margin: 0; width: 396px; background: var(--bg); color: var(--ink); }
+button, select, input { font: inherit; }
 button { color: inherit; }
-.shell { display: grid; gap: 14px; padding: 17px; }
-.app-header { display: flex; align-items: center; justify-content: space-between; }
-.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.brand img { border-radius: 10px; box-shadow: 0 6px 18px rgba(42, 47, 52, .14); }
-h1 { margin: 0; font-size: 15px; line-height: 1.25; letter-spacing: -.01em; font-weight: 700; }
-.brand p { margin: 3px 0 0; color: var(--muted); font-size: 11px; line-height: 1.2; }
-.icon-button, .swap-button { display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; cursor: pointer; transition: background 180ms cubic-bezier(.16, 1, .3, 1), transform 180ms cubic-bezier(.16, 1, .3, 1); }
-.icon-button { width: 34px; height: 34px; font-size: 19px; }
-.icon-button:hover, .swap-button:hover { background: var(--surface-2); }
-.icon-button:active, .swap-button:active { transform: scale(.96); }
-.control-panel { padding: 13px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: 0 10px 30px rgba(42, 47, 52, .08); }
-label { display: grid; gap: 6px; min-width: 0; }
-label > span { color: var(--muted); font-size: 10px; font-weight: 650; letter-spacing: .04em; }
-select { width: 100%; height: 34px; padding: 0 30px 0 10px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: var(--surface-2); outline: none; }
-select:focus-visible, button:focus-visible { outline: 3px solid rgba(69, 76, 83, .28); outline-offset: 2px; }
-.model-field { grid-template-columns: 45px 1fr; align-items: center; }
-.language-row { display: grid; grid-template-columns: 1fr 32px 1fr; gap: 8px; align-items: end; margin-top: 11px; }
-.swap-button { width: 32px; height: 34px; color: var(--muted); }
-.primary-action { display: grid; grid-template-columns: 24px 1fr 24px; align-items: center; min-height: 48px; padding: 0 14px; border: 0; border-radius: 14px; color: #f7f7f5; background: var(--accent); font-weight: 700; cursor: pointer; box-shadow: 0 12px 30px rgba(42, 47, 52, .18); transition: background 180ms cubic-bezier(.16, 1, .3, 1), transform 180ms cubic-bezier(.16, 1, .3, 1), box-shadow 180ms cubic-bezier(.16, 1, .3, 1); }
-.primary-action i { font-size: 19px; }
-.primary-action i:last-child { justify-self: end; font-size: 16px; transition: transform 180ms cubic-bezier(.16, 1, .3, 1); }
-.primary-action:hover { background: var(--accent-hover); box-shadow: 0 15px 36px rgba(42, 47, 52, .24); transform: translateY(-1px); }
-.primary-action:hover i:last-child { transform: translateX(2px); }
-.primary-action:active { background: var(--accent-pressed); transform: scale(.99); }
-.page-progress { display: grid; gap: 8px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-.page-progress[hidden] { display: none; }
-.page-progress div { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 10px; }
-.page-progress b { color: var(--ink); font-variant-numeric: tabular-nums; }
-.page-progress progress { width: 100%; height: 6px; border: 0; border-radius: 999px; overflow: hidden; accent-color: var(--accent); }
-.page-progress progress::-webkit-progress-bar { background: var(--surface-2); }
-.page-progress progress::-webkit-progress-value { border-radius: 999px; background: var(--accent); }
-.tools { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
-.tool-button { position: relative; display: grid; grid-template-columns: 28px 1fr auto; align-items: center; min-height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 13px; text-align: left; color: var(--ink); background: var(--surface); cursor: pointer; transition: border-color 180ms cubic-bezier(.16, 1, .3, 1), transform 180ms cubic-bezier(.16, 1, .3, 1), background 180ms cubic-bezier(.16, 1, .3, 1); }
-.tool-button i { color: var(--accent); font-size: 20px; }
-.tool-button > span:not(.tool-copy) { font-size: 12px; font-weight: 620; white-space: nowrap; }
-.tool-button-mode { min-height: 58px; }
-.tool-copy { display: grid; gap: 2px; min-width: 0; }
-.tool-copy strong { font-size: 12px; font-weight: 650; white-space: nowrap; }
-.tool-copy small { color: var(--muted); font-size: 9px; line-height: 1.25; white-space: nowrap; }
-.tool-button b { padding: 3px 6px; border-radius: 6px; color: var(--muted); background: var(--surface-2); font-size: 9px; font-weight: 650; }
-.tool-button:hover { border-color: rgba(69, 76, 83, .42); background: #f0f1ef; transform: translateY(-1px); }
-.tool-button[aria-pressed="true"] { border-color: rgba(69, 76, 83, .52); background: #e2e4e3; }
-.tool-button[aria-pressed="true"] b { color: var(--ink); background: rgba(69, 76, 83, .13); }
-.video-control { display: flex; align-items: center; justify-content: space-between; min-height: 40px; padding: 0 5px; }
-.video-control div { display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 610; }
-.video-control i { color: var(--accent); font-size: 19px; }
-.video-control .control-copy { display: flex; flex-direction: column; gap: 2px; }
-.video-control .control-copy small { color: var(--muted); font-size: 10px; font-weight: 500; }
-.compact-button { min-height: 30px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: var(--surface); cursor: pointer; font-size: 11px; font-weight: 620; }
-.compact-button:hover { border-color: rgba(69, 76, 83, .42); background: var(--surface-2); }
-.compact-button:active { transform: scale(.97); }
-.compact-button[aria-pressed="true"] { border-color: transparent; color: #f7f7f5; background: var(--accent); }
-#status { min-height: 17px; padding: 0 3px; color: var(--muted); font-size: 11px; line-height: 1.4; }
-#status:empty { display: none; }
-#status[data-state="error"] { color: var(--danger); }
-#status[data-state="success"] { color: #3f654f; }
-button:disabled { cursor: wait; opacity: .62; }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-/* MVP：尚未開放的功能列。整列反灰，按鍵直接寫 Coming soon。
-   別用絕對定位的角標——它會壓在按鍵文字上，變成「Coming s開啟」。 */
-.video-control.coming-soon { opacity: .5; cursor: not-allowed; }
-.video-control.coming-soon button {
-  /* 停用的按鍵不發出點擊事件也擋住冒泡，讓它不吃滑鼠事件，
-     點擊才會落到整列上，Coming soon 的提示才出得來。 */
-  pointer-events: none;
-  font-weight: 650;
-  letter-spacing: .01em;
+.shell { display: grid; gap: var(--s2); padding: var(--s3); }
+
+/* ── 標頭 ─────────────────────────────────────────────────────────────
+   品牌兩行（名稱＋目前引擎），字幕狀態改放右側跟齒輪同一排。
+   原本三行疊在左邊，把「字幕未開啟」擠成最小的一行小字，看起來像溢出。 */
+.app-header { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+.brand { display: flex; align-items: center; gap: var(--s2); min-width: 0; }
+.brand img { border-radius: var(--r-control); }
+.brand-text { min-width: 0; }
+h1 { margin: 0; font-size: var(--t-title); line-height: var(--lh-title); letter-spacing: -.01em; font-weight: 700; }
+.brand p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-cap);
+  line-height: var(--lh-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
+.header-actions { display: flex; align-items: center; gap: var(--s1); flex: none; }
+
+.icon-button, .swap-button {
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--r-control);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.icon-button { width: var(--h-icon); height: var(--h-icon); font-size: 17px; }
+.icon-button:hover, .swap-button:hover { background: var(--surface-2); color: var(--ink); }
+.icon-button:active, .swap-button:active { transform: scale(.96); }
+
+/* 字幕狀態晶片：真的有語意狀態才給顏色，不是裝飾用的小圓點。 */
+.subtitle-status {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  height: var(--h-chip);
+  margin: 0;
+  padding: 0 var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: var(--t-cap);
+  line-height: 1;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.subtitle-status:hover { border-color: var(--line-strong); background: var(--surface-2); }
+.subtitle-status .dot { width: 6px; height: 6px; border-radius: var(--r-pill); flex: none; background: currentColor; opacity: .45; }
+.subtitle-status[data-mode="dual"], .subtitle-status[data-mode="ai"] { color: var(--ink); }
+.subtitle-status[data-mode="dual"] .dot, .subtitle-status[data-mode="ai"] .dot { background: var(--accent); opacity: 1; }
+.subtitle-status[data-mode="conflict"] { color: var(--danger); border-color: var(--danger); }
+.subtitle-status[data-mode="conflict"] .dot { background: var(--danger); opacity: 1; }
+
+/* ── 翻譯設定 ─────────────────────────────────────────────────────────
+   這一區原本包在一張卡裡，卡又裝著三個有邊框的控制項——框中框中框。
+   拿掉外卡之後，欄位自己就是視覺單位，版面少一層雜訊也矮 20px。 */
+.control-panel { display: grid; gap: var(--s2); }
+label { display: grid; gap: var(--s1); min-width: 0; }
+label > span {
+  color: var(--muted);
+  font-size: var(--t-cap);
+  line-height: var(--lh-tight);
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+select {
+  width: 100%;
+  height: var(--h-field);
+  padding: 0 26px 0 var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  color: var(--ink);
+  background: var(--surface);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease);
+}
+select:hover { border-color: var(--line-strong); }
+.language-row { display: grid; grid-template-columns: 1fr var(--h-field) 1fr; gap: var(--s2); align-items: end; }
+.swap-button { width: var(--h-field); height: var(--h-field); border: 1px solid var(--line); background: var(--surface); }
+
+/* 顯示模式：分段控制。軌道一個底色，選中的那一段填色，不再兩顆各自畫框。 */
+.display-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s1);
+  padding: var(--s1);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+}
+.display-mode-option {
+  min-height: var(--h-seg);
+  border: 0;
+  border-radius: var(--r-control);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.display-mode-option:hover { color: var(--ink); }
+.display-mode-option[aria-pressed="true"] { color: var(--on-accent); background: var(--accent); }
+
+/* ── 主要動作 ─────────────────────────────────────────────────────── */
+.primary-action {
+  display: grid;
+  grid-template-columns: 20px 1fr 20px;
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--h-cta);
+  padding: 0 var(--s3);
+  border: 0;
+  border-radius: var(--r-control);
+  color: var(--on-accent);
+  background: var(--accent);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.primary-action i { font-size: 18px; }
+.primary-action i:last-child { justify-self: end; font-size: 15px; transition: transform var(--dur) var(--ease); }
+.primary-action:hover { background: var(--accent-hover); }
+.primary-action:hover i:last-child { transform: translateX(2px); }
+.primary-action:active { background: var(--accent-pressed); transform: scale(.99); }
+
+/* ── 進度 ─────────────────────────────────────────────────────────────
+   原本也是一張有框的卡，緊貼在主按鈕下面，等於同一件事畫了兩個框。
+   現在就是「按鈕底下的一條進度」：一行字＋一條線。 */
+.page-progress {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s2);
+  margin-top: calc(var(--s1) - var(--s2));
+  color: var(--muted);
+  font-size: var(--t-cap);
+  line-height: var(--lh-tight);
+}
+.page-progress[hidden] { display: none; }
+.page-progress span { white-space: nowrap; }
+.page-progress b { color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.page-progress progress { width: 100%; height: 4px; border: 0; border-radius: var(--r-pill); overflow: hidden; accent-color: var(--accent); }
+.page-progress progress::-webkit-progress-bar { background: var(--track); }
+.page-progress progress::-webkit-progress-value { border-radius: var(--r-pill); background: var(--accent); }
+
+/* ── 工具 ─────────────────────────────────────────────────────────────
+   上排四個一次性動作做成等寬磚（圖示在上、標籤在下），下排兩個開關佔兩格。
+   原本六張同尺寸的卡片排成 2×3，把「做一次的動作」和「開著的模式」
+   畫成同一種東西，看不出誰是誰。 */
+.tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s2); }
+.tool-button {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--s1);
+  min-height: var(--h-tile);
+  padding: var(--s1) var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  color: var(--ink);
+  background: var(--surface);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.tool-button i { color: var(--accent); font-size: 18px; line-height: 1; }
+.tool-button > span:not(.tool-copy) {
+  min-height: calc(var(--t-cap) * var(--lh-tight) * 2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: var(--t-cap);
+  line-height: var(--lh-tight);
+  font-weight: 600;
+}
+.tool-button:hover { border-color: var(--line-strong); background: var(--surface-2); }
+
+.tool-button-mode {
+  grid-column: span 2;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  justify-items: start;
+  gap: var(--s1);
+  min-height: var(--h-mode);
+  padding: var(--s1) var(--s2);
+  text-align: left;
+}
+.tool-copy { display: grid; gap: 0; min-width: 0; }
+.tool-copy strong { font-size: var(--t-body); line-height: var(--lh-body); font-weight: 650; }
+.tool-copy small {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--t-cap);
+  line-height: var(--lh-tight);
+}
+.tool-button b {
+  padding: 0 var(--s1);
+  border-radius: var(--r-pill);
+  color: var(--muted);
+  background: var(--surface-2);
+  font-size: var(--t-cap);
+  line-height: var(--h-chip);
+  font-weight: 650;
+}
+.tool-button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.tool-button[aria-pressed="true"] b { color: var(--on-accent); background: var(--accent); }
+
+/* ── 影片：一張卡，六列，列與列之間一條細線 ──────────────────────────
+   列高固定，標題不換行、說明超出就省略號——中英文的列高一模一樣，
+   換語言不會突然多長出一行把版面撐爆。 */
+.video-deck { border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); overflow: hidden; }
+.video-control {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--h-row);
+  padding: 0 var(--s3);
+  border-top: 1px solid var(--line);
+}
+.video-control:first-of-type { border-top: 0; }
+.video-control[hidden] { display: none; }
+.video-control > i { color: var(--accent); font-size: 15px; line-height: 1; }
+.control-copy { display: flex; align-items: baseline; gap: var(--s2); min-width: 0; }
+.control-copy strong {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.control-copy small {
+  /* basis 0：說明只吃「標題以外剩下的寬度」，所以列變窄時先犧牲說明，
+     標題不會莫名其妙被縮成「AI subtitl…」。 */
+  flex: 1 1 0;
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--t-cap);
+  line-height: var(--lh-cap);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-button {
+  flex: none;
+  height: var(--h-chip);
+  padding: 0 var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  color: var(--ink);
+  background: var(--surface);
+  font-size: var(--t-cap);
+  line-height: 1;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.compact-button:hover { border-color: var(--line-strong); background: var(--surface-2); }
+.compact-button:active { transform: scale(.97); }
+.compact-button[aria-pressed="true"] { border-color: var(--accent); color: var(--on-accent); background: var(--accent); }
+.compact-button:disabled { opacity: .5; cursor: default; }
+.export-actions { display: flex; align-items: center; gap: var(--s2); }
+/* width:auto 讓它照內容縮；max-width 只是上限，英文的「Translation only」
+   才不會被切成半截。中文字串短，這個上限不影響版面高度。 */
+.export-actions select {
+  width: auto;
+  max-width: 100px;
+  height: var(--h-chip);
+  padding: 0 var(--s1);
+  font-size: var(--t-cap);
+  font-weight: 600;
+}
+
+/* ── 狀態列 ─────────────────────────────────────────────────────────── */
+#status { color: var(--muted); font-size: var(--t-cap); line-height: 1.45; }
+#status:empty { display: none; }
+#status[data-state="error"] { color: var(--danger); }
+#status[data-state="success"] { color: var(--ok); }
+button:disabled { cursor: wait; opacity: .62; }
+
+/* ── 展開式面板：術語表 ───────────────────────────────────────────────
+   影片術語表是自動分析出來的專有名詞譯法，使用者可以改、可以釘。
+   釘選（📌）與手動改過的項目不會被下一次自動分析蓋掉。
+   這一塊是「按了才展開」的面板，允許它把 popup 撐高並捲動。 */
+.glossary, .audit {
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  font-size: var(--t-cap);
+  line-height: 1.5;
+}
+.glossary[hidden], .audit[hidden] { display: none; }
+.glossary-domain { margin: 0 0 var(--s2); color: var(--muted); }
+.glossary-group { margin-bottom: var(--s3); }
+.glossary-group:last-of-type { margin-bottom: var(--s2); }
+.glossary-label { display: block; margin-bottom: var(--s1); color: var(--muted); font-size: var(--t-cap); font-weight: 650; letter-spacing: .02em; }
+.glossary-hint { margin: 0 0 var(--s2); color: var(--muted); }
+.glossary-item { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: var(--s1); align-items: center; margin-bottom: var(--s1); }
+.glossary-item input {
+  min-width: 0;
+  height: var(--h-chip);
+  padding: 0 var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  color: var(--ink);
+  background: var(--surface-2);
+  font-size: var(--t-cap);
+  outline: none;
+}
+.glossary-icon {
+  display: grid;
+  place-items: center;
+  width: var(--h-chip);
+  height: var(--h-chip);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 13px;
+  cursor: pointer;
+}
+.glossary-icon:hover { border-color: var(--line-strong); background: var(--surface-2); }
+.glossary-icon[aria-pressed="true"] { border-color: var(--accent); color: var(--on-accent); background: var(--accent); }
+.glossary-empty { margin: 0 0 var(--s2); color: var(--muted); }
+.glossary-actions { display: flex; justify-content: flex-end; }
+
+/* ── 展開式面板：一鍵指認 ─────────────────────────────────────────────
+   畫面上每一行中文是誰畫的。多個翻譯類擴充功能同時裝著時，
+   光看畫面分不出來，這個直接點名。 */
+.audit-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); margin-bottom: var(--s2); }
+.audit-head strong { font-size: var(--t-body); font-weight: 650; }
+.audit-close {
+  display: grid;
+  place-items: center;
+  width: var(--h-chip);
+  height: var(--h-chip);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-control);
+  color: var(--muted);
+  background: none;
+  font-size: var(--t-body);
+  cursor: pointer;
+}
+.audit-close:hover { background: var(--surface-2); }
+.audit-item { padding: var(--s2); border-radius: var(--r-control); background: var(--surface-2); margin-bottom: var(--s1); }
+.audit-item:last-child { margin-bottom: 0; }
+.audit-item[data-ours="true"] { border-left: 3px solid var(--ok); }
+.audit-item[data-ours="false"] { border-left: 3px solid var(--danger); }
+.audit-owner { display: block; font-weight: 650; margin-bottom: 2px; }
+.audit-item[data-ours="false"] .audit-owner { color: var(--danger); }
+.audit-text { display: block; color: var(--muted); overflow-wrap: anywhere; }
+.audit-note { margin: var(--s2) 0 0; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }

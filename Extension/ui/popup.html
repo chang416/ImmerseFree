@@ -11,13 +11,16 @@
   <main class="shell">
     <header class="app-header">
       <div class="brand">
-        <img src="../icons/icon-128.png" width="34" height="34" alt="">
-        <div>
+        <img src="../icons/icon-128.png" width="28" height="28" alt="">
+        <div class="brand-text">
           <h1>ImmerseFree</h1>
           <p id="provider-state">讀取翻譯模型</p>
         </div>
       </div>
-      <button id="open-settings" class="icon-button" type="button" aria-label="開啟設定"><i class="ph ph-gear-six"></i></button>
+      <div class="header-actions">
+        <button id="subtitle-status" class="subtitle-status" data-mode="off" type="button" title="點一下指認畫面上的中文是誰畫的"><i class="dot"></i><span>字幕未開啟</span></button>
+        <button id="open-settings" class="icon-button" type="button" aria-label="開啟設定"><i class="ph ph-gear-six"></i></button>
+      </div>
     </header>
 
     <section class="control-panel" aria-label="翻譯設定">
@@ -55,6 +58,10 @@
           </select>
         </label>
       </div>
+      <div class="display-mode" role="group" aria-label="顯示模式">
+        <button id="mode-bilingual" class="display-mode-option" type="button" aria-pressed="true">雙語對照</button>
+        <button id="mode-translation-only" class="display-mode-option" type="button" aria-pressed="false">僅譯文</button>
+      </div>
     </section>
 
     <button id="translate-page" class="primary-action" type="button">
@@ -63,14 +70,26 @@
       <i class="ph ph-arrow-right"></i>
     </button>
 
+    <!-- 一行三格：狀態文字、進度條、計數。三者同一列，進度就貼在主按鈕下面，
+         不必再為它多開一張有框的卡。 -->
     <section id="page-progress" class="page-progress" aria-live="polite" hidden>
-      <div><span id="page-progress-text">準備翻譯</span><b id="page-progress-count"></b></div>
+      <span id="page-progress-text">準備翻譯</span>
       <progress id="page-progress-meter" max="1" value="0"></progress>
+      <b id="page-progress-count"></b>
     </section>
 
     <section class="tools" aria-label="翻譯工具">
       <button id="translate-pdf" class="tool-button" type="button">
         <i class="ph ph-file-pdf"></i><span>PDF 文件</span>
+      </button>
+      <button id="translate-epub" class="tool-button" type="button">
+        <i class="ph ph-book-open-text"></i><span>EPUB 電子書</span>
+      </button>
+      <button id="export-docx" class="tool-button" type="button">
+        <i class="ph ph-file-doc"></i><span>匯出雙語 Word</span>
+      </button>
+      <button id="open-more-settings" class="tool-button" type="button">
+        <i class="ph ph-sliders-horizontal"></i><span>翻譯品質</span>
       </button>
       <button id="toggle-selection" class="tool-button tool-button-mode" type="button" aria-pressed="false">
         <i class="ph ph-selection"></i>
@@ -82,38 +101,80 @@
         <span class="tool-copy"><strong>懸停段落</strong><small>不用反白，停留 0.7 秒</small></span>
         <b id="hover-state">關</b>
       </button>
-      <button id="open-more-settings" class="tool-button" type="button">
-        <i class="ph ph-sliders-horizontal"></i><span>翻譯品質</span>
-      </button>
     </section>
 
-    <section class="video-control coming-soon" id="ai-subtitle-row">
-      <div>
+    <section class="video-deck" aria-label="影片">
+      <div class="video-control" id="ai-subtitle-row">
         <i class="ph ph-subtitles"></i>
         <span class="control-copy"><strong>AI 字幕</strong><small>使用模型翻譯影片字幕</small></span>
+        <button id="toggle-ai-subtitles" class="compact-button" type="button" aria-pressed="false">開啟</button>
       </div>
-      <button id="toggle-ai-subtitles" class="compact-button" type="button" aria-pressed="false" disabled>Coming soon</button>
-    </section>
 
-    <section class="video-control coming-soon" id="dual-subtitle-row">
-      <div>
+      <div class="video-control" id="dual-subtitle-row">
         <i class="ph ph-closed-captioning"></i>
         <span class="control-copy"><strong>雙軌字幕</strong><small id="dual-subtitle-note">使用 Netflix、Disney+ 原有字幕軌</small></span>
+        <button id="toggle-dual-subtitles" class="compact-button" type="button" aria-pressed="false">開啟</button>
       </div>
-      <button id="toggle-dual-subtitles" class="compact-button" type="button" aria-pressed="false" disabled>Coming soon</button>
-    </section>
 
-    <section class="video-control coming-soon" id="study-row">
-      <div>
+      <div class="video-control" id="study-row">
         <i class="ph ph-graduation-cap"></i>
         <span class="control-copy"><strong>影集學習</strong><small id="study-note">整理這一集的單字與句型</small></span>
+        <button id="open-study" class="compact-button" type="button">開始</button>
       </div>
-      <button id="open-study" class="compact-button" type="button" disabled>Coming soon</button>
+
+      <div class="video-control" id="subtitle-export-row" hidden>
+        <i class="ph ph-download-simple"></i>
+        <span class="control-copy"><strong>匯出字幕</strong><small id="subtitle-export-note">把翻好的字幕存成 SRT</small></span>
+        <span class="export-actions">
+          <select id="subtitle-export-mode" aria-label="字幕格式">
+            <option value="zh">中文字幕</option>
+            <option value="source">原文字幕</option>
+            <option value="bilingual">雙語字幕</option>
+          </select>
+          <button id="export-subtitle" class="compact-button" type="button">匯出完整 SRT</button>
+        </span>
+      </div>
+
+      <div class="video-control" id="glossary-row" hidden>
+        <i class="ph ph-book-open-text"></i>
+        <span class="control-copy"><strong>術語表</strong><small id="glossary-note">固定這支影片的專有名詞譯法</small></span>
+        <button id="open-glossary" class="compact-button" type="button">編輯</button>
+      </div>
     </section>
 
+    <section id="glossary-panel" class="glossary" hidden>
+      <div class="audit-head">
+        <strong>術語表</strong>
+        <button id="glossary-close" class="audit-close" type="button" aria-label="關閉術語表">×</button>
+      </div>
+      <p class="glossary-domain" id="glossary-domain" hidden></p>
+      <div class="glossary-group">
+        <span class="glossary-label">這支影片</span>
+        <div id="glossary-video-list"></div>
+        <button id="glossary-add" class="compact-button" type="button">新增術語</button>
+      </div>
+      <div class="glossary-group">
+        <span class="glossary-label">全域釘選</span>
+        <p class="glossary-hint">所有影片一律套用</p>
+        <div id="glossary-global-list"></div>
+        <button id="glossary-add-global" class="compact-button" type="button">新增全域術語</button>
+      </div>
+      <div class="glossary-actions">
+        <button id="glossary-save" class="compact-button" type="button">儲存術語表</button>
+      </div>
+    </section>
+
+    <section id="audit" class="audit" hidden>
+      <div class="audit-head"><strong>畫面上的中文是誰畫的</strong><button id="audit-close" class="audit-close" type="button">×</button></div>
+      <div id="audit-body"></div>
+    </section>
 
     <output id="status" role="status" aria-live="polite"></output>
   </main>
+  <!-- zip 庫（MIT）。classic script 掛在 globalThis.fflate，而且會在 module
+       執行前跑完（module 是 deferred），所以 popup.js 抓得到它。
+       只有「匯出雙語 Word」用得到。 -->
+  <script src="../vendor/fflate/fflate.js"></script>
   <script type="module" src="i18n.js"></script>
   <script type="module" src="popup.js"></script>
 </body>

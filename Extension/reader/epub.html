@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ImmerseFree：EPUB 雙語</title>
+  <link rel="stylesheet" href="../vendor/phosphor/phosphor.css">
+  <link rel="stylesheet" href="epub.css">
+</head>
+<body>
+  <header class="toolbar">
+    <div class="brand"><img src="../icons/icon-128.png" width="34" height="34" alt=""><div><strong>ImmerseFree</strong><span id="document-name">EPUB 雙語</span></div></div>
+    <div class="toolbar-actions">
+      <label class="model-label">服務<select id="provider"><option value="antigravity">Antigravity</option><option value="opencode">OpenCode Free</option><option value="gemini">Gemini API</option></select></label>
+      <input id="file-input" type="file" accept="application/epub+zip,.epub" hidden>
+      <button id="choose-file" class="secondary" type="button"><i class="ph ph-upload-simple"></i>選擇 EPUB</button>
+      <button id="translate-all" type="button" disabled><i class="ph ph-translate"></i>翻譯整本</button>
+      <button id="export-epub" type="button" disabled><i class="ph ph-download-simple"></i>匯出雙語 EPUB</button>
+      <button id="export-docx" class="secondary" type="button" disabled><i class="ph ph-file-doc"></i>匯出雙語 Word</button>
+    </div>
+  </header>
+
+  <section id="empty-state" class="empty-state">
+    <i class="ph ph-book-open-text"></i>
+    <h1>開啟 EPUB 電子書</h1>
+    <p>拖入本機 EPUB，逐章翻譯後匯出雙語版本。</p>
+    <button id="empty-choose" type="button">選擇 EPUB</button>
+  </section>
+
+  <main id="book" hidden>
+    <aside class="chapter-list" aria-label="章節清單"><ol id="chapters"></ol></aside>
+    <section class="chapter-view">
+      <header class="chapter-head">
+        <span id="chapter-title">選擇章節</span>
+        <span class="source-badge" id="chapter-badge" data-source="pending">尚未翻譯</span>
+        <button id="translate-chapter" type="button" disabled>翻譯本章</button>
+      </header>
+      <div id="chapter-content" class="chapter-content" data-immersefree-no-i18n>
+        <div class="sheet-placeholder">從左側選擇章節以預覽內容</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="progress-bar" id="progress" hidden><div><span id="progress-text"></span><progress id="book-progress" max="1" value="0"></progress></div><button id="cancel" type="button">停止</button></footer>
+
+  <script src="../vendor/fflate/fflate.js"></script>
+  <script type="module" src="../ui/i18n.js"></script>
+  <script type="module" src="epub.js"></script>
+</body>
+</html>

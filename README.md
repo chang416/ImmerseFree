@@ -4,9 +4,13 @@
 
 # ImmerseFree
 
-ImmerseFree is an open-source bilingual browser translator for web pages, selected text, hovered paragraphs, input fields, and PDFs. It keeps the original text visible and inserts the translation underneath it. Windows and macOS are supported; Chrome, Microsoft Edge, and Safari installation paths are included.
+ImmerseFree is an open-source bilingual browser translator for web pages, video subtitles, EPUB and PDF books, Word export, selected text, hovered paragraphs, and input fields. It keeps the original text visible and inserts the translation underneath it. Windows and macOS are supported; Chrome, Microsoft Edge, and Safari installation paths are included.
 
-ImmerseFree 是一套開源的瀏覽器雙語翻譯工具，可翻譯整個網頁、反白文字、滑鼠懸停段落、輸入欄位與 PDF。它會保留原文，並把譯文插在原文下方。支援 Windows 與 macOS，並提供 Chrome、Microsoft Edge 與 Safari 的安裝方式。
+ImmerseFree 是一套開源的瀏覽器雙語翻譯工具，可翻譯整個網頁、影片字幕、EPUB 與 PDF 電子書、輸出 Word，也能翻譯反白文字、滑鼠懸停段落與輸入欄位。它會保留原文，並把譯文插在原文下方。支援 Windows 與 macOS，並提供 Chrome、Microsoft Edge 與 Safari 的安裝方式。
+
+It runs on model quota you already have. Nothing is bundled and no key ships with the installer: pick the Antigravity CLI, the free OpenCode models, your own Gemini key, or any OpenAI-compatible endpoint.
+
+它跑在你手上已經有的模型額度上。安裝包不內含任何引擎，也不附任何金鑰：你可以選 Antigravity CLI、OpenCode 免費模型、你自己的 Gemini 金鑰，或任何相容 OpenAI 介面的服務。
 
 ImmerseFree includes a complete built-in English interface as well as Traditional Chinese. It follows your browser language on first launch, and you can switch languages at any time in **Settings → Interface language**. It is made for users worldwide, not only for people in Taiwan, and can translate among English, Traditional Chinese, Simplified Chinese, Japanese, Korean, and Thai. Translation-provider availability and quotas may vary by region.
 
@@ -17,10 +21,10 @@ No API key or private login credential is included in this repository.
 本 repository 不包含任何 API key 或私人登入憑證。
 
 > [!IMPORTANT]
-> This is an open-source MVP. Chrome and Edge currently require one manual **Load unpacked** step per browser profile. Safari requires Xcode and your own Apple signing team. These browser security restrictions cannot be bypassed by an installer.
+> ImmerseFree is not yet in any browser store. Chrome and Edge therefore require one manual **Load unpacked** step per browser profile, and Safari requires Xcode and your own Apple signing team. These are browser security restrictions and no installer can bypass them — an installer is not allowed to add an extension to your browser on your behalf, so the last step has to be yours.
 
 > [!IMPORTANT]
-> 這是開源 MVP。Chrome 與 Edge 目前每個瀏覽器設定檔都需要手動執行一次「載入未封裝項目」；Safari 需要 Xcode 與你自己的 Apple 簽署 Team。這些瀏覽器安全限制無法由安裝程式略過。
+> ImmerseFree 還沒有上架任何瀏覽器商店。因此 Chrome 與 Edge 每個瀏覽器設定檔都需要手動執行一次「載入未封裝項目」，Safari 則需要 Xcode 與你自己的 Apple 簽署 Team。這些是瀏覽器的安全限制，任何安裝程式都繞不過去——瀏覽器不允許安裝程式代替你把擴充功能裝進去，所以最後一步一定得由你自己按。
 
 ## Quick install｜快速安裝
 
@@ -87,6 +91,12 @@ The local Safari script creates a development-signed app for your own Mac. It is
 
 本機 Safari 腳本會替你自己的 Mac 建立開發簽署版本。它不是已公證的公開安裝程式，不能直接拿去重新散布。
 
+> [!IMPORTANT]
+> If you used Safari before 0.8.0 and subtitles never left “Preparing”, rerun `Install or update Safari.command`. Releases before 0.8.0 did not grant the Safari extension outgoing network access, so its requests were silently dropped by the sandbox. See [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).
+
+> [!IMPORTANT]
+> 如果你在 0.8.0 之前用過 Safari 版，而字幕永遠停在「準備中」，請重新執行 `Install or update Safari.command`。0.8.0 之前的版本沒有給 Safari 擴充功能對外連線的權限，它發出的請求會被沙盒安靜地丟掉。詳見 [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)。
+
 ## What a translated website looks like｜翻譯後的網站會長這樣
 
 With page translation enabled, ImmerseFree keeps each original paragraph and places the translated paragraph directly below it with a subtle left border. The result looks like this:
@@ -99,25 +109,34 @@ With page translation enabled, ImmerseFree keeps each original paragraph and pla
 
 | Feature | What happens | 功能 | 實際效果 |
 |---|---|---|---|
-| Page translation | Translations are inserted below the original paragraphs. | 整頁翻譯 | 譯文插在原文段落下方。 |
+| Page translation | Translations are inserted below the original paragraphs, in one of 12 bilingual themes. | 整頁翻譯 | 譯文插在原文段落下方，可選 12 種雙語主題。 |
+| Translation-only mode | Hide the original and show only the translation; switch back at any time. | 僅譯文模式 | 隱藏原文只看譯文，可隨時切回。 |
+| AI video subtitles | On YouTube, ImmerseFree turns captions on by itself and draws its own translated line underneath. | AI 影片字幕 | 在 YouTube 上自動幫你開啟字幕，並在下方畫出自己的譯文行。 |
+| Dual subtitles | Netflix and Disney+ already ship several subtitle tracks; ImmerseFree shows a second one alongside the first. No model, no quota, no cost. | 雙軌字幕 | Netflix 與 Disney+ 本來就有多條字幕軌，ImmerseFree 直接把第二條疊上去。不用模型、不吃額度、不花錢。 |
+| Episode study | Turns one episode's subtitles into vocabulary and sentence-pattern notes at your level. | 影集學習 | 把一集的字幕整理成符合你程度的單字與句型教材。 |
+| SRT export | Export subtitles as an `.srt` file: translation only, original only, or bilingual. | SRT 匯出 | 把字幕輸出成 `.srt`：只要譯文、只要原文，或雙語。 |
+| EPUB reading and export | A built-in bilingual reader, plus a `<name>.bilingual.epub` you can open anywhere. | EPUB 閱讀與匯出 | 內建雙語閱讀器，另可輸出 `<原名>.bilingual.epub`。 |
+| PDF reading and export | Reads normal PDFs, uses local OCR for scanned pages when available, and exports a bilingual PDF. | PDF 閱讀與匯出 | 翻譯一般 PDF，掃描頁可用本機 OCR，並可輸出雙語 PDF。 |
+| Word export | Save the bilingual result as a `.docx`. | Word 匯出 | 把雙語結果輸出成 `.docx`。 |
 | Selected text | Select text and release the mouse to open a translation card. | 反白翻譯 | 選取文字並放開滑鼠後顯示翻譯卡片。 |
+| Dictionary card | Select a single word and the card becomes a dictionary entry: pronunciation, parts of speech, senses, and a usage note. | 劃詞詞典卡 | 反白單一單字時，卡片會變成詞典條目：音標、詞性、分項釋義與用法說明。 |
 | Hover translation | Rest on a paragraph for about 0.7 seconds; cached results appear immediately. | 懸停翻譯 | 在段落上停留約 0.7 秒；有快取時立即顯示。 |
 | Input translation | Type in an input field and press Space three times to replace it with the translation. | 輸入框翻譯 | 在輸入欄位打字後連按三次空白鍵，以譯文取代原文。 |
-| PDF reader | Reads normal PDFs and uses local OCR for scanned pages when available. | PDF 閱讀器 | 翻譯一般 PDF；可用時以本機 OCR 辨識掃描頁面。 |
+| Glossary | 536 built-in preset terms across three domains, plus your own terms and terms pinned to one video. | 術語表 | 內建 536 條預設術語，分三類；另可自訂，也可只釘給某一支影片。 |
+| Site rule library | 25 built-in rules tune what gets translated on common sites; your own rules can add, remove, or replace them. | 網站規則庫 | 內建 25 條規則調整常見網站的翻譯範圍；你的規則可以疊加、移除或整組取代。 |
+| Floating ball | A draggable, edge-snapping ball for translate, restore, translation-only, and hide. | 側邊懸浮球 | 可拖曳、自動貼邊的小球，提供翻譯、還原、僅譯文、收起。 |
+| Automatic failover | When one engine fails, the next in your order takes over — between batches only, and never silently. | 失敗自動轉移 | 引擎掛掉時換下一個——只在批與批之間換，而且不會偷偷換。 |
+| Diagnostics | Per-engine success rate, an error-code event log, and nine counters. | 診斷 | 每個引擎的成功率、帶錯誤碼的事件紀錄，以及九個計數器。 |
+| Shortcuts | Four: translate page, translate selection, toggle AI subtitles, toggle dual subtitles. | 快捷鍵 | 四個：翻譯網頁、翻譯選取、開關 AI 字幕、開關雙軌字幕。 |
 | Settings transfer | Export and import settings between computers. | 設定搬家 | 在不同電腦間匯出與匯入設定。 |
 
-## Coming soon｜即將推出
+Full details, including which file defines each number above, are in [`docs/FEATURES.md`](docs/FEATURES.md).
 
-- **AI video subtitles:** translate video subtitles with the selected model.
-- **AI 影片字幕**：使用選定的模型翻譯影片字幕。
-- **Dual subtitles:** show the original and translated Netflix／Disney+ subtitle tracks together.
-- **雙軌字幕**：同時顯示 Netflix／Disney+ 的原文與譯文字幕軌。
-- **Episode study:** collect useful vocabulary and sentence patterns from the current episode.
-- **影集學習**：整理目前單集裡值得學習的單字與句型。
+完整說明（包含上面每個數字是由哪個檔案定義的）在 [`docs/FEATURES.md`](docs/FEATURES.md)。
 
-These entries are already visible in the extension but remain disabled as **Coming soon**. They are not included in version 0.7.3.
+If something does not work, start with [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).
 
-這些入口已顯示在擴充功能中，但目前仍為停用的 **Coming soon** 狀態，不包含在 0.7.3 版內。
+如果有東西不能用，先看 [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)。
 
 ## Support the developer｜支持開發者
 
@@ -227,15 +246,27 @@ Use HTTPS for remote endpoints. Reserve `http://` for a local service you explic
 
 ### Translate a whole page｜翻譯整個網頁
 
-Open a normal `http://` or `https://` page, click the ImmerseFree toolbar icon, choose the engine/model, and click **Translate page**. Click the same action again to remove the inserted translations.
+Open a normal `http://` or `https://` page, click the ImmerseFree toolbar icon, choose the engine/model, and click **Translate page**. Click the same action again to remove the inserted translations. `Alt + Shift + B` (`Control + Shift + B` on macOS) does the same thing without opening the popup.
 
-打開一般的 `http://` 或 `https://` 網頁，按工具列上的 ImmerseFree 圖示，選擇引擎／模型，再按 **翻譯網頁**。再次執行相同動作即可移除插入的譯文。
+打開一般的 `http://` 或 `https://` 網頁，按工具列上的 ImmerseFree 圖示，選擇引擎／模型，再按 **翻譯網頁**。再次執行相同動作即可移除插入的譯文。按 `Alt + Shift + B`（macOS 是 `Control + Shift + B`）可以不開彈出視窗直接做同一件事。
+
+Choose how the translation looks in **Options → Bilingual display**: 12 themes, from a classic left border to underline, highlight, card, or plain. Switching a theme restyles pages you have already translated, immediately. **Translation-only** mode hides the original and shows only the translation, and you can switch back at any time.
+
+在 **選項 → 雙語顯示** 選擇譯文的長相：12 種主題，從經典左側邊線到底線、螢光、卡片、無樣式都有。換主題會立刻替已經翻好的頁面換裝。**僅譯文** 模式會隱藏原文只顯示譯文，隨時可以切回來。
+
+If you would rather not open the popup every time, turn on the floating ball. It sits at the edge of the page, snaps back when you drag it, translates the page when clicked, and its menu offers translate, restore, translation-only／bilingual, and hide.
+
+如果不想每次都開彈出視窗，可以打開懸浮球。它會停在頁面邊緣，拖曳後會自動貼回邊上，點一下就翻譯整頁，選單則有翻譯、還原、僅譯文／雙語切換、收起。
 
 ### Translate selected text or a paragraph｜翻譯反白文字或段落
 
-Select text and release the mouse to show a translation card. To use hover translation, enable it in Options and rest the pointer on a paragraph for about 0.7 seconds.
+Select text and release the mouse to show a translation card. `Alt + Shift + T` translates the current selection without the mouse. To use hover translation, enable it in Options and rest the pointer on a paragraph for about 0.7 seconds.
 
-反白選取文字並放開滑鼠後會顯示翻譯卡片。若要使用懸停翻譯，請先在「選項」中啟用，接著把游標停在段落上約 0.7 秒。
+反白選取文字並放開滑鼠後會顯示翻譯卡片。按 `Alt + Shift + T` 可以不用滑鼠直接翻譯目前選取的文字。若要使用懸停翻譯，請先在「選項」中啟用，接著把游標停在段落上約 0.7 秒。
+
+Select a **single word** and the card becomes a dictionary entry instead of a bare translation: pronunciation, parts of speech, each sense listed separately, and a usage note. Copying the card copies the whole entry, not only the translated word.
+
+反白**單一單字**時，卡片會變成詞典條目，而不只是一句翻譯：音標、詞性、分項列出的釋義，以及用法說明。複製時會複製整張卡，不是只有那個譯詞。
 
 ### Translate an input field｜翻譯輸入欄位
 
@@ -243,15 +274,73 @@ Type in a supported text field and press Space three times. ImmerseFree replaces
 
 在支援的文字欄位輸入內容後，連按三次空白鍵。ImmerseFree 會用譯文取代目前文字。密碼、Email、數字、網址與電話欄位不會套用。
 
+### Translate video subtitles｜翻譯影片字幕
+
+On YouTube, open the ImmerseFree popup and turn on **AI subtitles**, or press `Alt + Shift + A`. ImmerseFree enables the video's captions by itself, merges the player's timing-cut cues back into whole sentences, and draws its own translated line under the original. Merging matters: a player splits captions for reading rhythm, not for meaning, so translating raw cues one by one gives the model half-sentences to work with.
+
+在 YouTube 上打開 ImmerseFree 彈出視窗，開啟 **AI 字幕**，或按 `Alt + Shift + A`。ImmerseFree 會自動把影片字幕打開，把播放器依顯示節奏切開的字幕片段合併回完整句子，再在原文下方畫出自己的譯文行。合併這件事很重要：播放器切字幕是為了閱讀節奏，不是照語意切，所以直接逐片段送翻，模型拿到的是半句話。
+
+On Netflix and Disney+, turn on **Dual subtitles**, or press `Alt + Shift + D`. These services already carry several subtitle tracks, so ImmerseFree simply displays a second one next to the first. No model is called, so this costs nothing and uses no quota.
+
+在 Netflix 與 Disney+ 上，開啟 **雙軌字幕**，或按 `Alt + Shift + D`。這兩個平台本來就附了多條字幕軌，ImmerseFree 只是把第二條顯示出來。完全不呼叫模型，所以不花錢也不吃額度。
+
+To keep a proper noun consistent for a whole season, open the popup's glossary and pin its translation. To take the subtitles with you, use **Export SRT** and choose translation only, original only, or bilingual.
+
+想讓某個專有名詞在整季裡譯法一致，就到彈出視窗的術語表把它的譯法釘起來。想把字幕帶走，用 **匯出 SRT**，可選只要譯文、只要原文，或雙語。
+
+**Episode study** turns the current episode's subtitles into vocabulary and sentence-pattern notes. Enter a TOEIC, IELTS, or GEPT score — or say you are a complete beginner — and ImmerseFree maps it onto the six CEFR levels (A1 to C2, the standard European language-ability scale, where A1 is beginner and C2 is near-native) and writes the notes at that level.
+
+**影集學習** 會把目前這一集的字幕整理成單字與句型教材。輸入多益、雅思或全民英檢分數，或直接說你是純新手，ImmerseFree 會換算成 CEFR 六個等級（A1 到 C2，歐洲通用的語言能力量表，A1 是入門、C2 接近母語者），再照那個程度出教材。
+
+### Translate an EPUB or export to Word｜翻譯 EPUB 或匯出 Word
+
+Open the popup and choose **EPUB**, then pick the file. ImmerseFree opens it in a built-in bilingual reader and inserts the translation after each original block. From there you can save a `<name>.bilingual.epub` that opens in any e-reader, or export the same result as a Word `.docx`.
+
+打開彈出視窗選 **EPUB**，再選檔案。ImmerseFree 會用內建的雙語閱讀器打開它，在每個原文區塊後插入譯文。接著可以輸出 `<原名>.bilingual.epub`（任何電子書閱讀器都打得開），或把同一份結果輸出成 Word 的 `.docx`。
+
+Books longer than 500 blocks ask for confirmation first, because that means a lot of model calls. Word export writes plain-text paragraphs with four named styles; bold, links, and the original heading hierarchy are not carried across, so use EPUB or PDF export when formatting matters.
+
+超過 500 個區塊的書會先跳出確認，因為那代表很多次模型呼叫。Word 匯出寫出來的是純文字段落配四個自訂樣式，不會保留粗體、連結與原本的標題層級；在意排版就改用 EPUB 或 PDF 匯出。
+
 ### Translate a PDF｜翻譯 PDF
 
 Open a PDF in the browser, open the ImmerseFree popup, and start PDF translation. Normal PDFs use their text layer. Scanned pages use the local Windows OCR or macOS Vision helper when available. Password-protected, damaged, or non-PDF responses cannot be read.
 
 在瀏覽器中開啟 PDF，打開 ImmerseFree 彈出視窗並開始 PDF 翻譯。一般 PDF 會使用內建文字層；掃描頁面則在可用時使用本機 Windows OCR 或 macOS Vision 元件。受密碼保護、已損壞，或連結實際沒有回傳 PDF 的檔案無法讀取。
 
+The reader has a translation-only toggle, and you can save the result as a bilingual PDF or as a Word `.docx`.
+
+閱讀器有「只看譯文」的切換，結果也可以輸出成雙語 PDF 或 Word 的 `.docx`。
+
 For local `file://` PDFs in Chrome or Edge, open the extension details page and enable **Allow access to file URLs** if the browser asks for it.
 
 若要在 Chrome 或 Edge 翻譯本機 `file://` PDF，請打開擴充功能詳細資料頁；如果瀏覽器要求，請啟用 **允許存取檔案網址**。
+
+### Keep terminology consistent｜讓術語譯法一致
+
+A glossary pins how a term must be translated, so the same word does not come back three different ways across a long article or a whole season. ImmerseFree ships 536 preset terms in three domains — technology and software, finance and investing, medicine and biotech — which you turn on per domain in Options. You can add your own terms, and pin terms to just the video you are watching.
+
+術語表用來釘住某個詞一定要怎麼翻，這樣同一個字在一篇長文或一整季影集裡不會出現三種譯法。ImmerseFree 內建 536 條預設術語，分成科技與軟體、財經與投資、醫療與生技三類，可在選項中分類開啟。你也可以自己加，或只釘給正在看的那支影片。
+
+Only the terms that actually occur in a sentence are sent to the model, and the translation cache is keyed on exactly those terms. So changing one term's translation retranslates the sentences it affects and leaves everything else on its cached result.
+
+只有真的出現在句子裡的術語才會送給模型，翻譯快取也剛好以那些術語為鍵。所以改掉一個術語的譯法，只會讓受影響的句子重翻，其他句子照樣沿用快取。
+
+### Tune a specific website｜針對特定網站調整
+
+Some sites wrap their text in markup that a generic translator handles badly — a comment counter treated as a paragraph, a code block translated as prose. ImmerseFree ships 25 built-in site rules for common sites. In **Options → My rules** you can write your own as JSON: append `.add` to a field name to layer your entry on top of the built-in rule, `.remove` to drop specific built-in entries, or use the bare field name to replace the whole set.
+
+有些網站的文字被包在對通用翻譯器不友善的標記裡——留言計數被當成段落、程式碼區塊被當成散文翻掉。ImmerseFree 為常見網站內建了 25 條規則。在 **選項 → 我的規則** 可以用 JSON 自己寫：欄位名後面加 `.add` 是疊加在內建規則之上，加 `.remove` 是把內建的某幾項拿掉，不加後綴就是整組換掉。
+
+### When an engine runs out｜引擎額度用完時
+
+Automatic failover is on by default. When an engine fails — quota exhausted, local service down, timeout, CLI unreachable — the next engine in your order takes over. Switching happens only between batches, so a single sentence is never half-translated by two engines, and one translation tries at most two extra engines before stopping. The toolbar names the engine that took over; ImmerseFree never changes engine silently.
+
+失敗自動轉移預設是開啟的。引擎掛掉時——額度用完、本機服務沒開、逾時、CLI 連不上——就換成你排定的下一個。轉移只發生在批與批之間，同一句話不會被兩個引擎各翻一半，一次翻譯最多額外嘗試兩個引擎就停。工具列會顯示是誰接手；ImmerseFree 不會偷偷換引擎。
+
+**Options → Diagnostics** shows the success rate per engine, a recent event log with error codes, and nine counters, which is the fastest way to tell a quota problem from a network one.
+
+**選項 → 診斷** 會顯示每個引擎的成功率、帶錯誤碼的近期事件紀錄，以及九個計數器；要分辨這是額度問題還是網路問題，看這裡最快。
 
 ## Manual browser installation｜手動安裝瀏覽器擴充功能
 
@@ -445,8 +534,16 @@ Windows/       Windows installer, launcher, uninstaller, and OCR helper
 macOS/         macOS installer, OCR source, and Safari Xcode project
 test/          Node.js regression tests
 scripts/       project integrity checks
-docs/          screenshots and official-source research notes
+docs/          feature overview, troubleshooting, screenshots, and research notes
 ```
+
+- [`docs/FEATURES.md`](docs/FEATURES.md) — bilingual feature overview; every number cites the file that defines it.
+- [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) — the problems reported most often and how to tell them apart.
+- [`docs/OFFICIAL-SOURCES.md`](docs/OFFICIAL-SOURCES.md) — evidence notes behind the installation and publishing instructions.
+
+- [`docs/FEATURES.md`](docs/FEATURES.md)——中英雙語功能總覽，每個數字都註明是哪個檔案定義的。
+- [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)——最常被回報的問題，以及怎麼分辨你遇到的是哪一個。
+- [`docs/OFFICIAL-SOURCES.md`](docs/OFFICIAL-SOURCES.md)——安裝與上架說明背後的查證紀錄。
 
 Run the complete cross-platform-independent verification suite with Node.js 22 or newer:
 

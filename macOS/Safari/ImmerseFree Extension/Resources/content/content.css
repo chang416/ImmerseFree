@@ -1,12 +1,326 @@
+/* ================================================================ 雙語顯示主題（W3-1）
+   機制：page-translator 在每個文件的 <html> 掛 data-imf-theme="主題id"，
+   譯文節點只有一個 class（.immersefree-page-translation），主題全靠
+   「根屬性 + 後代選擇器」切換——換主題只改一個屬性，已插入的幾百段譯文
+   全部即時換裝，不必逐段改 class。
+   基底（下面這塊）是印刷層，所有主題共用：
+   - line-height 1.7：中英混排時中文字面比拉丁字面高，1.55 會顯得擠。
+   - text-spacing-trim: trim-start：CJK 標點擠壓——行首的「（『等全形標點
+     收掉左半空隙（Chrome 123+；不支援的瀏覽器安全忽略）。對手 66 個
+     theme class 沒有處理這件事。
+   - text-autospace: normal：漢字與拉丁字母/數字之間自動加間（Chrome 141+）。
+   裝飾層（邊線、底線、高亮…）住在各主題的規則裡；沒有掛任何 data-imf-theme
+   時長得跟 classic 一樣，所以舊快取、還沒拿到設定的瞬間都不會裸奔。 */
 .immersefree-page-translation {
   margin-block: .25em .8em !important;
   padding-inline-start: .65em !important;
   border-inline-start: 2px solid #5d646a !important;
   color: color-mix(in srgb, currentColor 88%, #5d646a) !important;
   font: inherit !important;
-  line-height: 1.55 !important;
+  /* 字級與字重跟「被翻的那一段」走，不是跟它的父容器走。
+     font: inherit 繼承的是父層脈絡，但作者列、日期這類 metadata 是靠自己的
+     class 縮小的（父層還是 16px），大標題也是靠 h1 自己的 font-size 放大的，
+     所以只寫 inherit 的結果是「小字譯文被放大、大標題譯文被縮小」。
+     injectTranslation 在插入的當下讀一次原節點的 computed 值寫進這兩個
+     自訂屬性；沒抄到就退回 inherit＝完全是舊行為。
+     用自訂屬性而不是 inline font-weight，是為了讓 bold 主題那條更高特異度的
+     規則還壓得過去（inline !important 會把整個 bold 主題廢掉）。
+     這兩行必須排在 font 簡寫之後，同一條規則裡後寫的才蓋得過前面的簡寫。
+     text-transform 刻意不抄——中文沒有大小寫，uppercase 對譯文沒有意義。 */
+  font-size: var(--imf-source-font-size, inherit) !important;
+  font-weight: var(--imf-source-font-weight, inherit) !important;
+  line-height: 1.7 !important;
+  text-spacing-trim: trim-start;
+  text-autospace: normal;
   opacity: .95 !important;
 }
+
+/* 每個非 classic 主題都先把基底的邊線裝飾歸零，再上自己的裝飾。
+   這些選擇器的特異度（屬性+class）高於基底（單 class），同樣 !important
+   時後者穩贏，不必堆層級。 */
+[data-imf-theme="underline"] .immersefree-page-translation,
+[data-imf-theme="dashed"] .immersefree-page-translation,
+[data-imf-theme="wavy"] .immersefree-page-translation,
+[data-imf-theme="highlight"] .immersefree-page-translation,
+[data-imf-theme="faded"] .immersefree-page-translation,
+[data-imf-theme="italic"] .immersefree-page-translation,
+[data-imf-theme="bold"] .immersefree-page-translation,
+[data-imf-theme="divider"] .immersefree-page-translation,
+[data-imf-theme="plain"] .immersefree-page-translation {
+  border-inline-start: 0 !important;
+  padding-inline-start: 0 !important;
+}
+
+[data-imf-theme="underline"] .immersefree-page-translation {
+  text-decoration: underline !important;
+  text-decoration-color: color-mix(in srgb, currentColor 42%, transparent) !important;
+  text-decoration-thickness: 1px !important;
+  text-underline-offset: .22em !important;
+}
+
+[data-imf-theme="dashed"] .immersefree-page-translation {
+  text-decoration: underline dashed !important;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent) !important;
+  text-decoration-thickness: 1px !important;
+  text-underline-offset: .22em !important;
+}
+
+[data-imf-theme="wavy"] .immersefree-page-translation {
+  text-decoration: underline wavy !important;
+  text-decoration-color: color-mix(in srgb, currentColor 38%, transparent) !important;
+  text-underline-offset: .24em !important;
+}
+
+[data-imf-theme="highlight"] .immersefree-page-translation {
+  background: rgba(255, 226, 130, .5) !important;
+  box-decoration-break: clone !important;
+  -webkit-box-decoration-break: clone !important;
+  border-radius: 3px !important;
+  padding-inline: .18em !important;
+}
+
+[data-imf-theme="quote"] .immersefree-page-translation {
+  border-inline-start: 3px solid #8a949e !important;
+  padding-block: .35em !important;
+  padding-inline: .8em .6em !important;
+  background: rgba(96, 106, 116, .08) !important;
+  border-start-end-radius: 6px !important;
+  border-end-end-radius: 6px !important;
+}
+
+[data-imf-theme="faded"] .immersefree-page-translation {
+  opacity: .62 !important;
+}
+
+[data-imf-theme="italic"] .immersefree-page-translation {
+  font-style: italic !important;
+}
+
+[data-imf-theme="bold"] .immersefree-page-translation {
+  font-weight: 700 !important;
+}
+
+/* 紙片：譯文像一張浮起來的小卡。陰影只用一層淡的，長文章整頁都是卡片時
+   陰影疊起來才不會髒。 */
+[data-imf-theme="card"] .immersefree-page-translation {
+  border-inline-start: 0 !important;
+  padding: .5em .75em !important;
+  background: rgba(250, 250, 248, .92) !important;
+  border: 1px solid rgba(32, 35, 39, .12) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 4px rgba(42, 47, 52, .1) !important;
+}
+
+[data-imf-theme="divider"] .immersefree-page-translation {
+  border-block-start: 1px solid color-mix(in srgb, currentColor 26%, transparent) !important;
+  padding-block-start: .4em !important;
+}
+
+/* plain（無裝飾）：只留印刷層，一條裝飾都沒有。 */
+[data-imf-theme="plain"] .immersefree-page-translation {
+  opacity: 1 !important;
+}
+
+/* 深色模式配色：只調「有自己顏色」的主題（高亮、引用、紙片）。
+   其餘主題的裝飾色都是 currentColor 混出來的，跟著頁面文字色自動走。 */
+@media (prefers-color-scheme: dark) {
+  [data-imf-theme="highlight"] .immersefree-page-translation {
+    background: rgba(191, 154, 24, .32) !important;
+  }
+  [data-imf-theme="quote"] .immersefree-page-translation {
+    background: rgba(148, 160, 172, .14) !important;
+    border-inline-start-color: #6e7882 !important;
+  }
+  [data-imf-theme="card"] .immersefree-page-translation {
+    background: rgba(38, 41, 45, .88) !important;
+    border-color: rgba(214, 218, 222, .14) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .4) !important;
+  }
+}
+
+/* ── 僅譯文模式（W3-1）─────────────────────────────────────
+   原文段落（掛著 data-immersefree-page-source 標記、且緊跟著譯文的那些）
+   只是 display:none，節點原封不動留在 DOM——切回雙語就原樣回來，
+   任何事件監聽、框架的 virtual DOM 對照都不會斷。 */
+[data-imf-mode="translationOnly"] [data-immersefree-page-source] {
+  display: none !important;
+}
+
+.immersefree-subtitle-overlay {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  left: 50% !important;
+  bottom: 14% !important;
+  width: min(900px, 86vw) !important;
+  transform: translateX(-50%) !important;
+  pointer-events: none !important;
+  text-align: center !important;
+  color: white !important;
+  font-family: "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif !important;
+  text-shadow: 0 1px 3px #0a0a0a, 0 0 8px #0a0a0a !important;
+}
+
+.immersefree-subtitle-original,
+.immersefree-subtitle-translation {
+  display: table !important;
+  max-width: 100% !important;
+  margin: 4px auto !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  background: rgba(10, 10, 10, .72) !important;
+  font-size: clamp(18px, 2.1vw, 32px) !important;
+  line-height: 1.35 !important;
+  white-space: pre-wrap !important;
+}
+
+.immersefree-subtitle-original { font-size: clamp(15px, 1.55vw, 24px) !important; opacity: .9 !important; }
+.immersefree-subtitle-translation[data-state="pending"] { opacity: .65 !important; }
+.immersefree-subtitle-translation[data-state="error"] { color: #ffd0d0 !important; font-size: 14px !important; }
+
+.immersefree-youtube-translation {
+  display: inline !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  color: #fff !important;
+  background: rgba(8, 8, 8, .78) !important;
+  box-decoration-break: clone !important;
+  -webkit-box-decoration-break: clone !important;
+}
+.immersefree-youtube-caption-window {
+  height: auto !important;
+  overflow: visible !important;
+}
+.immersefree-youtube-translation-line {
+  display: block !important;
+  margin-top: 3px !important;
+}
+.immersefree-youtube-translation[data-state="pending"] { opacity: .72 !important; }
+.immersefree-youtube-translation[data-state="error"] { color: #ffd0d0 !important; }
+
+.immersefree-youtube-subtitle-root {
+  all: initial;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 40 !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  padding: 0 5% 2% !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+.html5-video-player:not(.ytp-autohide) .immersefree-youtube-subtitle-root {
+  padding-bottom: 60px !important;
+}
+
+.immersefree-youtube-subtitle-active .ytp-caption-window-container {
+  visibility: hidden !important;
+}
+
+.immersefree-youtube-subtitle-box {
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 2px !important;
+  width: var(--immersefree-youtube-cue-width, auto) !important;
+  max-width: 90% !important;
+  color: #fff !important;
+  font-family: "Segoe UI", "Microsoft JhengHei UI", "Microsoft JhengHei", "Noto Sans TC", sans-serif !important;
+  font-size: var(--immersefree-youtube-font-size, 24px) !important;
+  line-height: 1.28 !important;
+  text-align: center !important;
+  text-shadow: 0 1px 3px #0a0a0a, 0 0 7px #0a0a0a !important;
+}
+
+.immersefree-youtube-subtitle-source,
+.immersefree-youtube-subtitle-translation {
+  box-sizing: border-box !important;
+  /* 換行由 subtitle-linebreak-core 決定，每行一個 block span，所以這裡不再
+     依賴 -webkit-line-clamp 去猜要從哪裡截斷（那是「畫面截字」，不是斷句）。 */
+  display: block !important;
+  width: 100% !important;
+  padding: 2px 7px !important;
+  background: rgba(8, 8, 8, .76) !important;
+  box-decoration-break: clone !important;
+  -webkit-box-decoration-break: clone !important;
+  min-height: 1.28em !important;
+  max-height: 2.56em !important;
+  overflow: hidden !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+}
+
+/* 切好的每一行。行內不再自動折行——該折的地方換行器已經折過了。 */
+.immersefree-subtitle-line {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font: inherit !important;
+  color: inherit !important;
+  background: none !important;
+  text-align: inherit !important;
+}
+
+.immersefree-youtube-subtitle-source {
+  opacity: .92 !important;
+  font-size: .84em !important;
+}
+
+.immersefree-youtube-subtitle-translation {
+  font-size: 1em !important;
+  font-weight: 600 !important;
+}
+
+.immersefree-youtube-subtitle-translation[data-state="pending"] { opacity: .7 !important; }
+.immersefree-youtube-subtitle-translation[data-state="error"] { color: #ffd0d0 !important; }
+
+.immersefree-streaming-translation {
+  /* Keep runtime left/top/max-width styles effective.  Making the reset
+     important pins dynamic overlays to their static, usually off-screen,
+     position even though the rest of this rule correctly uses !important. */
+  all: initial;
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  transform: translateX(-50%) !important;
+  display: table !important;
+  width: max-content !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  color: #fff !important;
+  background: rgba(8,8,8,.78) !important;
+  box-shadow: 0 1px 5px rgba(0,0,0,.24) !important;
+  font: 500 clamp(18px,2vw,32px)/1.35 "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif !important;
+  text-align: center !important;
+  text-shadow: 0 1px 3px #0a0a0a,0 0 8px #0a0a0a !important;
+  /* 串流貼片字幕一行到底（使用者要求不換行）：nowrap 硬撐一行，
+     放不下時 positionLine 縮字級，內容不截斷。 */
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  pointer-events: none !important;
+}
+
+.immersefree-selection-trigger {
+  all: initial;
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 36px !important;
+  height: 36px !important;
+  border: 1px solid rgba(32, 35, 39, .16) !important;
+  border-radius: 12px !important;
+  color: #f7f7f5 !important;
+  background: #454c53 !important;
+  box-shadow: 0 10px 28px rgba(42, 47, 52, .24) !important;
+  font: 600 15px/1 "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif !important;
+  cursor: pointer !important;
+  transition: transform 180ms cubic-bezier(.16, 1, .3, 1), box-shadow 180ms cubic-bezier(.16, 1, .3, 1) !important;
+}
+
+.immersefree-selection-trigger:hover { transform: translateY(-2px) !important; background:#353b41 !important; box-shadow: 0 14px 34px rgba(42,47,52,.3) !important; }
 
 .immersefree-page-progress {
   position: fixed !important;
@@ -22,6 +336,20 @@
   box-shadow: 0 18px 54px rgba(42,47,52,.2) !important;
   font: 12px/1.4 "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif !important;
   backdrop-filter: blur(18px) !important;
+  /* 收尾動畫（使用者回饋 round-1：翻完之後膠囊不會自己走）。
+     page-translator 在整頁真的翻完之後掛 data-dismissing，等這段轉場跑完
+     才把節點移除；按「還原」是直接 remove()，不走這條路（要立刻消失）。 */
+  opacity: 1 !important;
+  transform: none !important;
+  transition: opacity 320ms ease, transform 320ms ease !important;
+}
+.immersefree-page-progress[data-dismissing] {
+  opacity: 0 !important;
+  transform: translateY(8px) !important;
+  pointer-events: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .immersefree-page-progress { transition: none !important; }
 }
 .immersefree-page-progress > div { display: flex !important; justify-content: space-between !important; gap: 14px !important; margin-bottom: 9px !important; }
 .immersefree-page-progress strong { font-size: 12px !important; font-weight: 680 !important; }
@@ -79,3 +407,292 @@
   font: 600 11px/1.2 "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif !important;
 }
 .immersefree-input-status[data-state="error"] { color: #744a4a !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .immersefree-selection-trigger { transition: none !important; }
+}
+
+/* 字幕來源標記只留在 dataset（給一鍵指認用），畫面上不加任何色帶——
+   插入的字幕要跟原生 CC 長得一模一樣。目前是哪種模式看 popup 的狀態燈。 */
+
+/* ================================================================ 側邊懸浮球（W3-1）
+   z-index 策略：2147483646——刻意比字幕 overlay、進度卡、劃詞卡（都是
+   2147483647）低一層。球是常駐入口，那些是使用者動作的當下產物；
+   兩者重疊時應該是「產物蓋住入口」，反過來會把正在讀的字幕擋掉。
+   pointer-events 策略：球本身就是那顆 56px 的小容器，**沒有任何全螢幕
+   wrapper**，所以頁面其餘 100% 面積的滑鼠事件完全不經過我們——不會出現
+   「透明大層把整頁點擊吃掉」這種災難。容器內 pointer-events:auto（all:initial
+   會把它重設成 initial，本來就是 auto，這裡明寫是宣告意圖）。 */
+.immersefree-fab {
+  all: initial;
+  position: fixed !important;
+  z-index: 2147483646 !important;
+  pointer-events: auto !important;
+  /* 容器只包那顆球（選單改成絕對定位脫離文流），盒子＝球本身。
+     若讓選單留在文流裡只用 opacity/visibility 隱藏，球下方那塊「隱形選單」
+     仍屬於這個 pointer-events:auto 的容器，會吞掉頁面點擊、還會被滑過時誤開。 */
+  display: block !important;
+  font-family: "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif !important;
+}
+/* 呼吸脈衝：陰影畫在球外，不受球的 overflow:hidden 影響。 */
+@keyframes imf-cyber-pulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(0, 150, 255, 0.28), 0 0 0 0 rgba(0, 200, 255, 0.4); }
+  50% { box-shadow: 0 6px 22px rgba(0, 180, 255, 0.5), 0 0 0 6px rgba(0, 200, 255, 0); }
+}
+.immersefree-fab-ball {
+  all: initial;
+  display: grid !important;
+  place-items: center !important;
+  box-sizing: border-box !important;
+  width: 38px !important;
+  height: 38px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  cursor: grab !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  touch-action: none !important;
+  opacity: 0.88 !important;
+  animation: imf-cyber-pulse 3.6s ease-in-out infinite !important;
+  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 260ms, opacity 200ms !important;
+}
+.immersefree-fab-ball img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+.immersefree-fab:hover .immersefree-fab-ball,
+.immersefree-fab:focus-within .immersefree-fab-ball {
+  opacity: 1 !important;
+  transform: scale(1.08) !important;
+  box-shadow: 0 8px 24px rgba(0, 180, 255, 0.6), 0 0 12px rgba(0, 220, 255, 0.5) !important;
+}
+.immersefree-fab:hover .immersefree-fab-ball img,
+.immersefree-fab:focus-within .immersefree-fab-ball img {
+  transform: rotate(10deg) scale(1.06) !important;
+}
+.immersefree-fab[data-dragging] .immersefree-fab-ball {
+  cursor: grabbing !important;
+  transform: scale(1.14) !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* 選單：絕對定位掛在球正下方；關閉時 visibility:hidden＋pointer-events:none，
+   且因為脫離文流，容器盒子不含它——頁面在那塊區域照常可點。
+   padding-top 蓋住球與選單之間的縫，滑鼠從球移到選單不會斷 hover。 */
+.immersefree-fab-menu {
+  all: initial;
+  position: absolute !important;
+  top: 100% !important;
+  /* 靠球的右緣對齊（不置中）：球在右側時置中會讓 68px 寬的按鈕超出視窗 3px。 */
+  right: 0 !important;
+  left: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 5px !important;
+  padding-top: 7px !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translate(0, -8px) scale(0.92) !important;
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.16, 1, 0.3, 1), visibility 220ms !important;
+}
+.immersefree-fab:hover .immersefree-fab-menu,
+.immersefree-fab:focus-within .immersefree-fab-menu {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translate(0, 0) scale(1) !important;
+}
+.immersefree-fab[data-dragging] .immersefree-fab-menu {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: none !important;
+}
+
+.immersefree-fab-action {
+  all: initial;
+  /* all:initial 會把「從選單繼承的 visibility:hidden 與 pointer-events:none」
+     重設回預設值——按鈕雖然 opacity:0 看不見，卻仍可被滑鼠命中：滑過空氣區
+     就觸發父層 :hover 把選單打開、點擊也被它吃掉。明寫 inherit 把兩者接回父層。 */
+  visibility: inherit !important;
+  pointer-events: inherit !important;
+  box-sizing: border-box !important;
+  min-width: 68px !important;
+  padding: 6px 11px !important;
+  border: 1px solid rgba(0, 170, 255, 0.22) !important;
+  border-radius: 10px !important;
+  color: #1a1e24 !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+  font: 600 12px/1.2 "Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC",sans-serif !important;
+  letter-spacing: 0.3px !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  opacity: 0 !important;
+  transform: translateY(-8px) scale(0.88) !important;
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), background 160ms, border-color 160ms, box-shadow 160ms, color 160ms !important;
+}
+.immersefree-fab:hover .immersefree-fab-action,
+.immersefree-fab:focus-within .immersefree-fab-action {
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+}
+.immersefree-fab:hover .immersefree-fab-action:nth-child(1),
+.immersefree-fab:focus-within .immersefree-fab-action:nth-child(1) { transition-delay: 25ms !important; }
+.immersefree-fab:hover .immersefree-fab-action:nth-child(2),
+.immersefree-fab:focus-within .immersefree-fab-action:nth-child(2) { transition-delay: 60ms !important; }
+.immersefree-fab:hover .immersefree-fab-action:nth-child(3),
+.immersefree-fab:focus-within .immersefree-fab-action:nth-child(3) { transition-delay: 95ms !important; }
+.immersefree-fab:hover .immersefree-fab-action:nth-child(4),
+.immersefree-fab:focus-within .immersefree-fab-action:nth-child(4) { transition-delay: 130ms !important; }
+/* 懸停／按下的微動畫：選擇器帶上父層，特異度才追得上上面的展開規則，
+   並放在其後由來源順序勝出——否則永遠被 translateY(0) scale(1) 壓住。 */
+.immersefree-fab .immersefree-fab-action:hover {
+  background: rgba(240, 248, 255, 0.96) !important;
+  border-color: rgba(0, 180, 255, 0.6) !important;
+  box-shadow: 0 4px 18px rgba(0, 150, 255, 0.25), 0 0 8px rgba(0, 200, 255, 0.2) !important;
+  transform: translateY(-1px) scale(1.03) !important;
+  color: #0066cc !important;
+}
+.immersefree-fab .immersefree-fab-action:active {
+  transform: translateY(0) scale(0.96) !important;
+}
+.immersefree-fab-action[aria-pressed="true"] {
+  color: #ffffff !important;
+  background: #0070f3 !important;
+  border-color: #0070f3 !important;
+  box-shadow: 0 0 10px rgba(0, 112, 243, 0.45) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .immersefree-fab-action {
+    color: #e0ecf8 !important;
+    background: rgba(22, 28, 38, 0.88) !important;
+    border-color: rgba(0, 200, 255, 0.26) !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.12) !important;
+  }
+  .immersefree-fab .immersefree-fab-action:hover {
+    background: rgba(30, 42, 58, 0.95) !important;
+    border-color: rgba(0, 220, 255, 0.75) !important;
+    color: #55c8ff !important;
+    box-shadow: 0 0 14px rgba(0, 200, 255, 0.35), 0 4px 18px rgba(0, 0, 0, 0.6) !important;
+  }
+  .immersefree-fab-action[aria-pressed="true"] {
+    color: #00ffee !important;
+    background: rgba(0, 68, 98, 0.82) !important;
+    border-color: #00ffee !important;
+    box-shadow: 0 0 12px rgba(0, 255, 238, 0.45) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .immersefree-fab-ball { animation: none !important; transition: none !important; }
+  .immersefree-fab-menu, .immersefree-fab-action { transition: none !important; }
+}
+
+/* ================================================================ 劃詞詞典卡（W3-3）
+ *
+ * 卡片外框、定位、字級全部沿用 .immersefree-quick-card（劃詞翻譯卡那一張）：
+ * 詞典模式只是同一張卡的另一種內容，所以這裡**只寫內容區**，一個定位屬性、
+ * 一個 z-index 都不重複宣告。分家靠 [data-imf-card="dictionary"]，class 不變，
+ * 於是 [data-immersefree-extension-root] 的自我排除與 placeCard 的量測邏輯
+ * 完全不必知道有詞典模式這件事。
+ *
+ * 命名：全部 immersefree-dict- 前綴。W3-1 已經核對過對手 inject.css 的 54 個
+ * class 名（_work/w3-1-opponent-classes.txt），這一組同樣零重疊；也刻意避開
+ * overlay／content／hidden／inner 這些會被渲染庫撞名的通用字（lessons §9）。
+ *
+ * 字級全部用 em：卡片的 font-size 由內容腳本依「被查的那段內文」設定，
+ * 用 px 寫死的話網頁放大時卡片內文不會跟著放大。
+ */
+.immersefree-quick-card[data-imf-card="dictionary"] .immersefree-quick-source { display: none !important; }
+.immersefree-quick-card[data-imf-card="dictionary"] .immersefree-quick-translation {
+  max-height: 22em !important;
+  padding: .55em .95em 1em !important;
+}
+
+.immersefree-dict { display: block !important; }
+
+.immersefree-dict-head {
+  display: flex !important;
+  align-items: baseline !important;
+  flex-wrap: wrap !important;
+  gap: .5em !important;
+  padding: .1em 0 .45em !important;
+}
+.immersefree-dict-word { font-weight: 700 !important; font-size: 1.25em !important; letter-spacing: .01em !important; }
+.immersefree-dict-phonetic { color: #6f7479 !important; font-size: .92em !important; font-style: normal !important; }
+
+.immersefree-dict-pos {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: .35em !important;
+  padding: 0 0 .6em !important;
+}
+.immersefree-dict-tag {
+  display: inline-block !important;
+  padding: .12em .5em !important;
+  border: 1px solid rgba(32,35,39,.16) !important;
+  border-radius: 999px !important;
+  color: #454c53 !important;
+  background: #f0f1ef !important;
+  font-size: .74em !important;
+  font-weight: 600 !important;
+  line-height: 1.5 !important;
+  white-space: nowrap !important;
+}
+
+.immersefree-dict-senses {
+  margin: 0 !important;
+  padding: 0 0 0 1.3em !important;
+  list-style: decimal !important;
+}
+.immersefree-dict-sense { margin: 0 0 .55em !important; padding: 0 !important; }
+.immersefree-dict-sense:last-child { margin-bottom: 0 !important; }
+.immersefree-dict-def { font-size: .97em !important; }
+/* 例句用左側細線串起來：例句與釋義的層級差別要看得出來，但不能靠縮排
+ * （縮排在窄卡片上會把長例句擠成一條）。 */
+.immersefree-dict-example {
+  margin: .25em 0 0 !important;
+  padding-left: .6em !important;
+  border-left: 2px solid rgba(32,35,39,.14) !important;
+  color: #454c53 !important;
+  font-size: .86em !important;
+}
+.immersefree-dict-example-translation {
+  padding-left: .6em !important;
+  border-left: 2px solid rgba(32,35,39,.14) !important;
+  color: #6f7479 !important;
+  font-size: .86em !important;
+}
+.immersefree-dict-note {
+  margin-top: .7em !important;
+  padding-top: .55em !important;
+  border-top: 1px solid rgba(32,35,39,.10) !important;
+  color: #6f7479 !important;
+  font-size: .84em !important;
+}
+
+/* 刻意**沒有** @media (prefers-color-scheme: dark) 這一段。.immersefree-quick-card
+ * 本身在深色模式下維持淺底深字（整份 content.css 都沒有給它深色變體），
+ * 這裡若照一般習慣加一組深色文字色，深色模式下就會變成淺底上的淺灰字——
+ * 對比度掉光，而且只有真的切到深色模式才看得出來。要改深色就整張卡一起改，
+ * 不是只改詞典那幾行。 */

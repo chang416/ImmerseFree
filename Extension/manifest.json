@@ -2,14 +2,15 @@
   "manifest_version": 3,
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA44jPcG3Jb8OOOZXNIJ0k5aPGhXuUrH6vdcfzG/hKid+xktSGuRyI8umes8YGBmxLtpA2iH4gPiULT5z/Vdb9CsmolUfNSpti9wMzIYVunJIfePUPEuWO436k2nwU+uwOoZ21j5NmnmUHgoXVRmQAE4XN9nbWqxILm20r3uXE/cF7G21yo+ym4I4jTuDcQXKgNf8mN7fyPNJRcPrKSdM4M/JaFvrDVsgyEQJNbLHt2IT8ncRijTgHMTnz2DF5Ige4S41Id+WauPjE2O7GZM3RwuUfqLVwYWHxIYBfUhxT6Uv0EKtFN3XoU3RLP+npS/I9C1AI3yTF9McUhPNKELJZnwIDAQAB",
   "name": "ImmerseFree",
-  "version": "0.7.3",
-  "description": "Bilingual translation for web pages, selected text, hovered paragraphs and PDFs.",
-  "version_name": "0.7.3",
+  "version": "0.8.0",
+  "description": "Bilingual translation for web pages, video subtitles, EPUB and PDF books, selected text and hovered paragraphs.",
+  "version_name": "0.8.0",
   "permissions": [
     "activeTab",
     "contextMenus",
     "scripting",
-    "storage"
+    "storage",
+    "unlimitedStorage"
   ],
   "host_permissions": [
     "https://generativelanguage.googleapis.com/*",
@@ -52,6 +53,18 @@
         "mac": "MacCtrl+Shift+T"
       },
       "description": "翻譯選取文字"
+    },
+    "toggle-ai-subtitle": {
+      "suggested_key": {
+        "default": "Alt+Shift+A"
+      },
+      "description": "開關 AI 字幕"
+    },
+    "toggle-dual-subtitle": {
+      "suggested_key": {
+        "default": "Alt+Shift+D"
+      },
+      "description": "開關雙軌字幕"
     }
   },
   "content_scripts": [
@@ -61,12 +74,33 @@
       ],
       "js": [
         "core/i18n-core.js",
+        "core/diagnostics-core.js",
         "core/page-translation-ui.js",
         "core/page-translation-cache.js",
         "core/language-core.js",
         "core/shared.js",
+        "core/batch-core.js",
+        "core/subtitle-linebreak-core.js",
+        "core/subtitle-merge-core.js",
+        "core/video-subtitle-core.js",
+        "core/youtube-subtitle-core.js",
+        "core/subtitle-retry-core.js",
+        "core/streaming-subtitle-core.js",
+        "core/subtitle-format-core.js",
+        "core/subtitle-store-core.js",
+        "core/glossary-core.js",
+        "core/subtitle-glossary-core.js",
+        "core/subtitle-context-core.js",
+        "core/manifest-core.js",
+        "core/rich-text-core.js",
+        "core/segmentation-core.js",
+        "core/site-rules-core.js",
+        "core/player-context-core.js",
         "content/page-translator.js",
+        "content/subtitle-translator.js",
         "content/interaction-translator.js",
+        "content/dual-subtitle.js",
+        "content/floating-ball.js",
         "content/main.js"
       ],
       "css": [
@@ -75,6 +109,29 @@
       "run_at": "document_idle",
       "all_frames": true,
       "match_origin_as_fallback": true
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content/sniffer-loader.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content/youtube-page-bridge.js",
+        "content/track-sniffer.js",
+        "icons/icon-32.png",
+        "icons/icon-48.png",
+        "core/site-rules.json"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

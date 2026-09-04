@@ -1,0 +1,86 @@
+/* EPUB 雙語閱讀器。風格與 reader/pdf.css 同一家族：同一組 CSS 變數、
+   同一個工具列／空狀態／進度列的形狀，換掉的是中間主體
+   （PDF 的左右頁對照 → EPUB 的章節清單＋章節內文）。 */
+:root {
+  color-scheme:light;
+  --bg:#eceeec;
+  --surface:#fafaf8;
+  --ink:#202327;
+  --muted:#6f7479;
+  --line:rgba(32,35,39,.14);
+  --accent:#454c53;
+  --doc-font:"Segoe UI","PingFang TC","PingFang SC","Hiragino Sans CNS","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC","Source Han Sans TC",sans-serif;
+  font-family:var(--doc-font);
+}
+
+* { box-sizing:border-box; }
+body { margin:0; min-height:100dvh; background:var(--bg); color:var(--ink); }
+.toolbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; gap:24px; min-height:68px; padding:10px 22px; border-bottom:1px solid var(--line); background:rgba(250,250,248,.94); backdrop-filter:blur(18px); }
+.brand { display:flex; align-items:center; gap:10px; min-width:0; }
+.brand img { border-radius:10px; }
+.brand div { display:grid; gap:2px; }
+.brand strong { font-size:13px; }
+.brand span { max-width:420px; overflow:hidden; color:var(--muted); font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+.toolbar-actions { display:flex; align-items:center; gap:9px; }
+.model-label { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:11px; }
+select,button { min-height:36px; border:1px solid var(--line); border-radius:10px; font:inherit; }
+select { padding:0 32px 0 10px; color:var(--ink); background:var(--surface); }
+button { display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:0 14px; color:#f7f7f5; background:var(--accent); font-size:12px; font-weight:650; cursor:pointer; transition:background 180ms cubic-bezier(.16,1,.3,1),transform 180ms cubic-bezier(.16,1,.3,1); }
+button:hover { background:#353b41; transform:translateY(-1px); }
+button.secondary { color:var(--ink); background:var(--surface); }
+button:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+button:focus-visible,select:focus-visible { outline:3px solid rgba(69,76,83,.28); outline-offset:2px; }
+
+.empty-state { display:grid; place-items:center; align-content:center; min-height:calc(100dvh - 68px); padding:40px; text-align:center; }
+.empty-state > i { color:var(--accent); font-size:54px; }
+.empty-state h1 { margin:18px 0 6px; font-size:22px; }
+.empty-state p { margin:0 0 20px; color:var(--muted); font-size:13px; }
+
+#book { display:grid; grid-template-columns:minmax(260px,340px) minmax(0,1fr); gap:20px; width:min(1480px,calc(100% - 28px)); margin:20px auto 90px; align-items:start; }
+.chapter-list { position:sticky; top:88px; max-height:calc(100dvh - 110px); overflow:auto; border:1px solid var(--line); background:var(--surface); box-shadow:0 18px 52px rgba(42,47,52,.16); }
+.chapter-list ol { margin:0; padding:8px; list-style:none; display:grid; gap:4px; }
+.chapter-row { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; padding:9px 10px; border:1px solid transparent; border-radius:10px; cursor:pointer; font-size:12px; }
+.chapter-row:hover { background:#f0f1ef; }
+.chapter-row[data-active="true"] { border-color:var(--line); background:#eceeec; }
+.chapter-row .chapter-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.chapter-state { padding:3px 7px; border:1px solid #b8bcba; border-radius:999px; color:#5e6469; background:#e9ebe9; font-size:10px; white-space:nowrap; }
+.chapter-state[data-state="ready"] { border-color:rgba(69,76,83,.55); color:#2f4a33; background:rgba(96,140,105,.16); }
+.chapter-state[data-state="partial"] { border-color:rgba(69,76,83,.48); color:#41474d; background:rgba(69,76,83,.10); }
+.chapter-state[data-state="pending"] { border-color:rgba(69,76,83,.48); color:#41474d; background:rgba(69,76,83,.10); }
+.chapter-state[data-state="error"] { border-color:rgba(116,74,74,.5); color:#744a4a; }
+
+.chapter-view { display:grid; grid-template-rows:auto 1fr; min-height:620px; overflow:hidden; border:1px solid var(--line); background:var(--surface); box-shadow:0 18px 52px rgba(42,47,52,.16); }
+.chapter-head { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:10px; min-height:48px; padding:0 14px; border-bottom:1px solid var(--line); background:#f4f5f3; }
+.chapter-head > span:first-child { overflow:hidden; color:var(--muted); font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+.source-badge { justify-self:start; padding:4px 7px; border:1px solid #b8bcba; border-radius:999px; color:#5e6469; background:#e9ebe9; font-size:10px; white-space:nowrap; }
+.source-badge[data-source="ready"] { border-color:rgba(69,76,83,.55); color:#2f4a33; background:rgba(96,140,105,.16); }
+.source-badge[data-source="error"] { border-color:rgba(116,74,74,.5); color:#744a4a; }
+.chapter-head button { min-height:30px; padding:0 10px; }
+
+.chapter-content { min-height:560px; padding:26px 30px; overflow:auto; background:#fdfdfb; font-size:15px; line-height:1.7; }
+.chapter-content[data-state="error"] { color:#744a4a; }
+.sheet-placeholder,.sheet-error { max-width:460px; padding:18px; border-left:2px solid var(--accent); background:#e5e7e5; font-size:13px; line-height:1.65; }
+.sheet-error { border-left-color:#744a4a; }
+.epub-segment { margin:0 0 18px; }
+.epub-segment .segment-original { margin:0; color:var(--ink); }
+.epub-segment .segment-translation { margin:6px 0 0; padding-left:12px; border-left:2px solid rgba(69,76,83,.35); color:#3c434a; }
+.epub-segment .segment-translation[data-state="pending"] { color:var(--muted); font-size:12px; }
+.epub-segment .segment-translation[data-state="error"] { border-left-color:rgba(116,74,74,.5); color:#744a4a; }
+.epub-segment[data-kind="heading"] .segment-original { font-size:1.28em; font-weight:700; }
+.epub-segment[data-kind="heading"] .segment-translation { font-weight:650; }
+
+.progress-bar { position:fixed; z-index:30; right:20px; bottom:20px; display:flex; align-items:center; gap:14px; padding:10px 12px 10px 16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); box-shadow:0 18px 50px rgba(42,47,52,.2); font-size:12px; }
+.progress-bar div { display:grid; gap:6px; }
+.progress-bar progress { width:240px; height:6px; border:0; border-radius:999px; overflow:hidden; accent-color:var(--accent); }
+.progress-bar progress::-webkit-progress-bar { background:var(--bg); }
+.progress-bar progress::-webkit-progress-value { border-radius:999px; background:var(--accent); }
+.progress-bar button { min-height:30px; padding:0 12px; color:var(--ink); background:var(--surface); }
+
+/* .empty-state／#book 的 display 規則會蓋過 UA 的 [hidden]，跟 pdf.css 一樣
+   要自己補一條，否則空狀態永遠顯示、書的主體被擠到摺頁下方。 */
+[hidden] { display:none !important; }
+
+@media (max-width:860px) {
+  #book { grid-template-columns:1fr; }
+  .chapter-list { position:static; max-height:280px; }
+}

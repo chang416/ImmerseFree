@@ -102,3 +102,50 @@ body.translation-only .replica-page { cursor:zoom-out; }
   .page-head progress { grid-column:1 / -1; }
 }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition-duration:0s!important; } }
+
+/* ---------------------------------------------------------------- 匯出雙語 PDF（W4-1）
+ *
+ * 匯出走的是瀏覽器自己的「列印 → 另存為 PDF」，不是另外產生一份 PDF 檔。
+ * 取捨（寫在這裡免得以後有人以為漏做）：
+ *   ✔ 不必引入任何 PDF 產生庫（最小的也是幾百 KB，還要自己處理中文字型嵌入，
+ *     少了字型的話輸出會變成一頁豆腐字）。
+ *   ✔ 印出來的版面就是畫面上的 replica——所見即所得，不存在「預覽好看、
+ *     匯出走位」這種只有使用者會踩到的落差。
+ *   ✘ 使用者要在列印對話框自己選「另存為 PDF」（Chrome 的目的地下拉），
+ *     我們沒有辦法用程式直接寫檔（擴充功能拿不到列印目的地）。
+ *   ✘ 輸出是「譯文覆蓋在原版面上」的單份文件，不是原文／譯文兩欄並排：
+ *     A4 上並排等於兩邊都只有半頁寬，字級會小到不能讀。要原文請留著原檔。
+ *   ✘ 底圖是點陣（replica 的背景就是 PDF 頁面的畫布），所以輸出檔案偏大、
+ *     原文那一層不可選取；譯文那一層是真文字，可選取、可搜尋。
+ *
+ * 一頁 PDF = 一張 replica。原始頁那一欄與所有 UI 在列印時整個隱藏。
+ */
+@media print {
+  /* 顏色照畫面印。少了這兩行，Chrome 會把遮蓋層的底色「最佳化」掉，
+     譯文會直接壓在原文上面變成兩層疊字。 */
+  html,body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  html,body { min-height:0; background:#fff; }
+  .toolbar,.progress-bar,.empty-state,.page-label,.page-head { display:none!important; }
+  /* 原始頁那一欄不印：印它等於每頁都印兩次同一頁，而且譯文那半頁會被壓扁。 */
+  .original-page { display:none!important; }
+  #pages { display:block; width:100%; margin:0; }
+  /* 一張紙一頁：高度鎖成一整頁、溢出切掉。
+     少了這一組，replica 的長寬比（595:842）換算出來會比 A4 的可印高度多出
+     不到 1mm，於是**每一頁都會多印一張幾乎空白的紙**——兩頁的檔案輸出四頁。
+     實測踩過（e2e 第一次跑出 4 頁）。 */
+  .pdf-page {
+    display:block; height:100vh; min-height:0; margin:0; overflow:hidden;
+    border:0; background:#fff; box-shadow:none;
+    break-inside:avoid; page-break-inside:avoid;
+    break-after:page; page-break-after:always;
+  }
+  /* 最後一頁不要再切一頁，否則輸出會多一張空白頁。 */
+  .pdf-page:last-child { break-after:auto; page-break-after:auto; }
+  .page-translation { display:block; border-left:0; }
+  .translation-content { min-height:0; padding:0; overflow:visible; background:#fff; }
+  /* 高度吃滿整頁、寬度由 replica 自己的長寬比（inline aspect-ratio）算出來，
+     所以遮蓋層的百分比定位不會走位。 */
+  .replica-page { height:100%; width:auto; max-width:100%; margin:0 auto; box-shadow:none; cursor:auto; }
+  .replica-background { height:100%; width:auto; }
+  @page { size:auto; margin:0; }
+}
