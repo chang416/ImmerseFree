@@ -4,8 +4,8 @@ A complete list of what ImmerseFree 0.8.0 does. Every number on this page comes
 from the shipped source, not from marketing copy; the file that defines each one
 is named so you can check it yourself.
 
-ImmerseFree 0.8.0 的完整功能清單。這一頁的每一個數字都來自實際出貨的原始碼，不是宣傳文案；
-每一項都註明了定義它的檔案，你可以自己去對。
+ImmerseFree 0.8.0 的完整功能清單。這一頁的每個數字都是從實際出貨的原始碼抄下來的，不是宣傳
+文案；每一項都寫明是哪個檔案定義的，你可以自己去對。
 
 ---
 
@@ -38,9 +38,9 @@ theme override applies, so `content.css` contains eleven `data-imf-theme`
 selectors, not twelve.
 
 主題 id 會寫在 `<html data-imf-theme="...">` 上，規則全部住在
-`Extension/content/content.css`。`classic` 是預設值，也是唯一沒有自己屬性值的主題——
-它就是沒有任何主題覆寫時基底規則畫出來的樣子，所以 `content.css` 裡有十一個
-`data-imf-theme` 選擇器，不是十二個。
+`Extension/content/content.css`。`classic` 是預設值，也是唯一沒有自己屬性值的主題：
+沒有任何主題覆寫的時候，基底規則畫出來的就是它。所以 `content.css` 裡的
+`data-imf-theme` 選擇器有十一個，不是十二個。
 
 | id | Rendering | 名稱 | 畫面上長怎樣 |
 |---|---|---|---|
@@ -65,7 +65,7 @@ from the real thing (`Extension/ui/options.js`, `renderThemeGrid()`).
 
 **即時預覽。** 選項頁會一次畫出十二種，每一格預覽容器都掛著真的 `data-imf-theme`，
 裡面放著真的 `.immersefree-page-translation`，吃的就是內容腳本注入的同一份
-`content.css`。不存在另一份可能跟實際情況分岔的預覽樣式表
+`content.css`。沒有另外一份預覽專用的樣式表，也就不會有預覽跟實際兩邊愈走愈遠的問題
 （`Extension/ui/options.js` 的 `renderThemeGrid()`）。
 
 **Dark mode.** Only the three themes that carry their own colour — `highlight`,
@@ -88,8 +88,8 @@ punctuation at line starts and spaces CJK against Latin runs.
 (`Extension/core/site-rules.json`) control *what* gets translated on a given
 site, not how the translation is styled — there is no per-site theme field.
 
-**適用範圍。** 主題是全域設定。網站規則（`Extension/core/site-rules.json`）控制的是
-某個網站上「哪些東西要翻」，不是譯文的樣式——沒有按網站分別設定主題的欄位。
+**適用範圍。** 主題是全域設定。網站規則（`Extension/core/site-rules.json`）管的是
+某個網站上「哪些東西要翻」，不管譯文長什麼樣；沒有「這個網站用這個主題」這種欄位。
 
 ---
 
@@ -287,7 +287,7 @@ links, or the original heading hierarchy across. Use EPUB or PDF export when
 formatting matters. Source: `Extension/core/docx-core.js`.
 
 **一個要先知道的限制。** Word 匯出寫出來的是純文字段落，配四個自訂樣式（原文、譯文、
-標題、書名）。它**不會**保留粗體、連結或原本的標題層級。在意排版的話請改用 EPUB 或
+標題、書名），**不會**保留粗體、連結和原本的標題層級。在意排版就改用 EPUB 或
 PDF 匯出。依據：`Extension/core/docx-core.js`。
 
 EPUB files over 500 blocks ask for confirmation before translating, because that
@@ -352,7 +352,7 @@ its cached result.
 
 Four engines. Nothing is bundled and no key ships with the installer.
 
-四種引擎。安裝包不內含任何引擎，也不附任何金鑰。
+四種引擎。安裝包不內含任何引擎，也不附金鑰。
 
 | Engine | Needs | Cost | 引擎 | 需要什麼 | 費用 |
 |---|---|---|---|---|---|
@@ -433,11 +433,11 @@ browser language on first launch, and you can change it at any time in
 **Options → Languages → Interface language**. Translation runs between English,
 Traditional Chinese, Simplified Chinese, Japanese, Korean, and Thai.
 
-介面完整提供英文與繁體中文。第一次啟動時跟隨瀏覽器語言，也可以隨時到
-**選項 → 語言 → 介面語言** 更改。翻譯支援英文、繁體中文、簡體中文、日文、韓文與泰文之間互譯。
+介面完整提供英文與繁體中文，第一次啟動時跟著瀏覽器語言走，之後隨時可以到
+**選項 → 語言 → 介面語言** 改。翻譯支援英文、繁體中文、簡體中文、日文、韓文與泰文之間互譯。
 
 Settings can be exported and imported to move to another computer. The export
 file contains your API keys in plaintext, so protect it and delete it after the
 transfer.
 
-設定可以匯出、匯入，用來搬到另一台電腦。匯出檔會以明文包含 API key，請妥善保護，搬完就刪掉。
+設定可以匯出、匯入，用來搬到另一台電腦。匯出檔是明文帶著 API key 的，請保管好，搬完就刪掉。

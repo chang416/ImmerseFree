@@ -4,8 +4,8 @@ This page collects the problems that are reported most often, together with the
 check that tells you which one you actually have. Every fix here is something you
 can do yourself; none of them requires rebuilding the project.
 
-這一頁收集最常被回報的問題，以及「怎麼判斷你遇到的是哪一個」的檢查方式。這裡的每一個
-處理方式你都可以自己做，都不需要重新建置專案。
+這一頁收的是最常被回報的問題，外加「怎麼判斷你遇到的是哪一個」的檢查方法。這裡每一種
+處理方式你都做得到，沒有一個需要重新建置專案。
 
 ---
 
@@ -24,10 +24,10 @@ network access, so every request the extension made to the local Bridge or to a
 translation API was dropped by the sandbox with no visible error. Subtitles were
 the most obvious victim because they fetch continuously.
 
-**原因。** Safari 的擴充功能跑在一個沙盒化的 app extension 裡——也就是一個被牆圍起來的
+**原因。** Safari 的擴充功能跑在沙盒化的 app extension 裡，也就是一個被牆圍起來的
 獨立程序，只拿得到它在建置設定裡明確申請過的能力。0.8.0 之前，`ImmerseFree Extension`
-這個 target 沒有申請「對外連線」的權限，所以擴充功能發往本機 Bridge 或翻譯 API 的每一個
-請求都被沙盒直接丟掉，而且不會顯示任何錯誤。字幕會一直抓資料，所以症狀最明顯。
+這個 target 沒申請「對外連線」的權限，於是擴充功能發往本機 Bridge 或翻譯 API 的每個請求，
+都被沙盒直接丟掉，而且連個錯誤訊息都不會給你。字幕要一直抓資料，所以症狀最明顯。
 
 **Fix.** Update to 0.8.0 and rebuild Safari by running
 `macOS/Install or update Safari.command` again. The Xcode project now sets
@@ -65,12 +65,12 @@ decoder) and often without the proprietary media codecs. Netflix and Disney+ wil
 never play there, and some YouTube formats fail too. This is not an ImmerseFree
 problem and no setting fixes it.
 
-**先確認一件事：這個 Chrome 是不是自動化工具開起來的？** 如果這個瀏覽器視窗是被測試或
-自動化工具開起來的——Playwright、Puppeteer、Selenium、用 `--remote-debugging-port`
-啟動，或是「Chrome for Testing」版本——那它跟你日常用的 Chrome 不是同一個東西。自動化版本
-不含 Widevine（串流服務要求的 DRM 元件，講白話就是那個負責解開版權保護的解碼器），
-也常常不含專有的影音編解碼器。Netflix 與 Disney+ 在那裡永遠不會播，某些 YouTube 格式也會
-失敗。這不是 ImmerseFree 的問題，任何設定都改不掉。
+**先確認一件事：這個 Chrome 是不是自動化工具開起來的？** 如果這個視窗是測試或自動化工具
+開的——Playwright、Puppeteer、Selenium、用 `--remote-debugging-port` 啟動，或「Chrome for
+Testing」版本——它跟你日常用的 Chrome 就不是同一個東西。自動化版本不含 Widevine
+（串流服務要求的 DRM 元件，講白話就是負責解開版權保護的那個解碼器），也常常沒有專有的
+影音編解碼器。Netflix 和 Disney+ 在那裡永遠播不起來，某些 YouTube 格式也會失敗。這不是
+ImmerseFree 的問題，改任何設定都沒用。
 
 **Fix.** Open your normal Chrome from the Dock, Start menu, or Applications
 folder, load the extension there, and test again.
@@ -99,10 +99,10 @@ extension asks it to run the CLI, and it passes the answer back. Only the CLI
 engines (Antigravity and OpenCode without a key) need it. Gemini and custom APIs
 do not.
 
-**Bridge 是什麼。** 瀏覽器不允許擴充功能直接執行電腦上的命令列程式，所以安裝程式會另外
-架一個小型的本機服務，也就是 Bridge，監聽 `http://127.0.0.1:27843`。你可以把它想成一個
-只接內線電話的櫃檯：擴充功能請它去呼叫 CLI，它再把結果轉回來。只有 CLI 類的引擎
-（Antigravity，以及沒填金鑰的 OpenCode）需要它；Gemini 與自訂 API 不需要。
+**Bridge 是什麼。** 瀏覽器不准擴充功能直接執行電腦上的命令列程式，所以安裝程式另外架了
+一個小型的本機服務，也就是 Bridge，監聽 `http://127.0.0.1:27843`。你可以把它想成一個
+只接內線的櫃檯：擴充功能請它去叫 CLI，它再把結果轉回來。只有 CLI 類的引擎
+（Antigravity，以及沒填金鑰的 OpenCode）用得到它，Gemini 和自訂 API 都不用。
 
 **Symptom.** The popup shows that the local service is unavailable, or CLI
 translations fail immediately while a Gemini key works fine.
@@ -150,9 +150,9 @@ refuses to start and says so instead of quietly stealing the port. Find the
 occupant with `lsof -ti tcp:27843` on macOS or
 `netstat -ano | findstr 27843` on Windows.
 
-**連接埠被占用。** 如果有別的程式已經占著 27843（port，也就是這台電腦上的一個門牌號碼），
-Bridge 會直接拒絕啟動並說明原因，而不是安靜地把流量搶走。用 macOS 的
-`lsof -ti tcp:27843` 或 Windows 的 `netstat -ano | findstr 27843` 找出占用者。
+**連接埠被占用。** 如果 27843（port，也就是這台電腦上的一個門牌號碼）已經被別的程式占著，
+Bridge 會直接拒絕啟動，並告訴你原因，而不是安靜地把流量搶過來。要找出占用的是誰，
+macOS 用 `lsof -ti tcp:27843`，Windows 用 `netstat -ano | findstr 27843`。
 
 ---
 
@@ -203,5 +203,5 @@ Open an issue with: your operating system and browser, the ImmerseFree version
 from the extension page, which engine you selected, and the contents of
 **Options → Diagnostics**. Remove your API keys before pasting anything.
 
-回報 issue 時請附上：作業系統與瀏覽器、擴充功能頁面上的 ImmerseFree 版本、你選用的引擎，
-以及 **選項 → 診斷** 的內容。貼出來之前請先把 API key 拿掉。
+開 issue 的時候請附上：作業系統與瀏覽器、擴充功能頁面上的 ImmerseFree 版本、你選的引擎，
+還有 **選項 → 診斷** 的內容。貼出來之前，記得先把 API key 拿掉。

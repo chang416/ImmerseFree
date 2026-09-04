@@ -82,7 +82,7 @@ automatic engine failover.
 
 Fixed a Windows installer version check that could reject releases newer than 0.7.0, and synchronized the Safari app version with the browser manifests. The Windows installer now derives its version from the packaged manifest, safely opens paths containing spaces, and copies the permanent extension path for the browser folder picker. CI validates the real Windows package contract. The README now clearly introduces the complete English interface and worldwide language support.
 
-修正 Windows 安裝程式可能拒絕 0.7.0 之後版本的版本檢查，並同步 Safari App 與瀏覽器 manifest 的版本。Windows 安裝程式現在會直接讀取發行包內的 manifest 版本、正確開啟含空格的路徑，並複製永久擴充功能路徑供瀏覽器選取。CI 也會實際驗證 Windows 安裝包契約。README 另外明確介紹完整英文介面與全球語言支援。
+修正 Windows 安裝程式的版本檢查，它原本會擋掉 0.7.0 之後的版本；也把 Safari App 與瀏覽器 manifest 的版本對齊。Windows 安裝程式現在直接讀發行包裡的 manifest 版本、能正確開啟含空格的路徑，並把永久擴充功能路徑複製起來，給瀏覽器的選取視窗用。CI 也會實際驗證 Windows 安裝包契約。README 另外把完整的英文介面與全球語言支援講清楚。
 
 ## 0.7.2 — 2026-09-02
 
@@ -104,7 +104,7 @@ Initial open-source MVP release. It includes bilingual page, selection, hover, i
 
 The Antigravity vision OCR fallback now runs without the CLI flag that auto-approves every tool call. The OpenCode default endpoint has also been updated to the current Zen API path. API keys remain stored in browser local storage and exported settings in plaintext; use dedicated low-quota keys and protect exported files.
 
-Antigravity 視覺 OCR 備援已移除會自動核准所有工具呼叫的 CLI 參數；OpenCode 預設端點也已更新為目前的 Zen API 路徑。API key 仍會儲存在瀏覽器本機空間，設定匯出檔也會以明文保存；請使用專用低額度 key，並妥善保護匯出檔。
+Antigravity 視覺 OCR 備援已經拿掉那個會自動核准所有工具呼叫的 CLI 參數；OpenCode 預設端點也換成目前的 Zen API 路徑。API key 還是存在瀏覽器本機空間，設定匯出檔也還是明文；請用專用的低額度 key，並把匯出檔保管好。
 
 Chrome and Edge store publishing still requires reconciling each store-assigned extension ID with the Bridge origin allowlist and testing the actual store-installed build. Safari public distribution requires Apple distribution signing and notarization or Mac App Store review.
 

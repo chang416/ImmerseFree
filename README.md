@@ -6,7 +6,7 @@
 
 **A bilingual translator for the whole web — pages, video subtitles, EPUB and PDF books, selected text, and input fields — with nothing held back for a paid tier, because there is no paid tier.**
 
-**一套涵蓋整個網路的雙語翻譯工具——網頁、影片字幕、EPUB 與 PDF 電子書、反白文字、輸入欄位——沒有任何功能被留給付費方案，因為它根本沒有付費方案。**
+**整個網路都能用的雙語翻譯工具：網頁、影片字幕、EPUB 與 PDF 電子書、反白文字、輸入欄位。功能沒有一項要付費才解得開，因為這裡根本沒有付費方案。**
 
 ImmerseFree ships a complete built-in English interface alongside Traditional Chinese, and it is made for users worldwide, not only for people in Taiwan. It follows your browser language on first launch and switches at any time in **Settings → Interface language**. It translates among English, Traditional Chinese, Simplified Chinese, Japanese, Korean, and Thai — in any direction, not just into Chinese. And because the custom-endpoint option accepts **any** OpenAI-compatible API, you are not tied to whichever providers happen to be reachable from Taiwan: point it at OpenAI, Groq, Together, OpenRouter, DeepSeek, or a model running on your own machine through Ollama or LM Studio, whichever is available where you are.
 
@@ -14,21 +14,21 @@ ImmerseFree 是寫給世界各地讀者用的，不限定語言方向。介面�
 
 It runs on model quota you already have. Nothing is bundled and no key ships with the installer: pick the Antigravity CLI, the free OpenCode models, your own Gemini key, or any OpenAI-compatible endpoint. There is no ImmerseFree account, no ImmerseFree server, and no ImmerseFree meter. Your text goes from your browser to the engine you chose, and that is the entire path.
 
-它跑在你手上已經有的模型額度上。安裝包不內含任何引擎，也不附任何金鑰：你可以選 Antigravity CLI、OpenCode 免費模型、你自己的 Gemini 金鑰，或任何相容 OpenAI 介面的服務。沒有 ImmerseFree 帳號、沒有 ImmerseFree 伺服器、也沒有 ImmerseFree 在旁邊計費。你的文字從你的瀏覽器直接送到你選的引擎，全程就這一段路。
+翻譯吃的是你手上本來就有的模型額度。安裝包不內含任何引擎，也不附金鑰：Antigravity CLI、OpenCode 免費模型、你自己的 Gemini 金鑰，或任何相容 OpenAI 介面的服務，挑一個接上去就能用。這裡沒有 ImmerseFree 帳號，沒有 ImmerseFree 伺服器，也沒有人在後面替你的用量算錢。你的文字從瀏覽器直接送到你選的引擎，全程就這一段路。
 
 Subtitle downloads, scanned-PDF OCR, glossaries, custom prompts, translation-only mode, twelve display themes — these are the things translation products usually put behind a subscription. Here they are just features, and they cost nothing. There is no bill to send you, because the project never handles your content and runs no service that could meter it.
 
-字幕檔下載、掃描 PDF 的 OCR、術語表、自訂提示詞、僅譯文模式、十二種顯示主題——這些通常是翻譯產品擺在訂閱牆後面的東西。在這裡它們就只是功能，而且不用錢。沒有帳單可以寄給你，因為這個專案不經手你的內容，也沒有跑任何可以拿來計費的服務。
+字幕檔下載、掃描 PDF 的 OCR、術語表、自訂提示詞、僅譯文模式、十二種顯示主題，翻譯產品通常把這些擺在訂閱牆後面。在 ImmerseFree，它們就只是功能，打開就能用，不用錢。這裡也開不出帳單給你：專案本身不經手你的內容，更沒有跑任何可以拿來計次的服務。
 
 Windows and macOS are supported; Chrome, Microsoft Edge, and Safari installation paths are included. No API key or private login credential is included in this repository.
 
-支援 Windows 與 macOS，並提供 Chrome、Microsoft Edge 與 Safari 的安裝方式。本 repository 不包含任何 API key 或私人登入憑證。
+支援 Windows 與 macOS，Chrome、Microsoft Edge 與 Safari 都有安裝方式。這個 repository 裡沒有放任何 API key 或私人登入憑證。
 
 > [!IMPORTANT]
 > ImmerseFree is not yet in any browser store. Chrome and Edge therefore require one manual **Load unpacked** step per browser profile, and Safari requires Xcode and your own Apple signing team. These are browser security restrictions and no installer can bypass them — an installer is not allowed to add an extension to your browser on your behalf, so the last step has to be yours.
 
 > [!IMPORTANT]
-> ImmerseFree 還沒有上架任何瀏覽器商店。因此 Chrome 與 Edge 每個瀏覽器設定檔都需要手動執行一次「載入未封裝項目」，Safari 則需要 Xcode 與你自己的 Apple 簽署 Team。這些是瀏覽器的安全限制，任何安裝程式都繞不過去——瀏覽器不允許安裝程式代替你把擴充功能裝進去，所以最後一步一定得由你自己按。
+> ImmerseFree 還沒上架任何瀏覽器商店。所以 Chrome 和 Edge 每一個瀏覽器設定檔，都要自己手動「載入未封裝項目」一次；Safari 則要有 Xcode 和你自己的 Apple 簽署 Team。這是瀏覽器的安全限制，沒有任何安裝程式繞得過去：瀏覽器不准安裝程式代替你把擴充功能裝進去，最後一步只能你自己按。
 
 ## Quick install｜快速安裝
 
@@ -89,7 +89,7 @@ The downloaded folder is named `Extension`, but the installer creates a permanen
 
 Install the Chrome/Edge version first so the shared Bridge is available. Then open the `macOS` folder and run **`Install or update Safari.command`**. You need the full Xcode app, not only the Command Line Tools. On the first run, Xcode may open and ask you to sign in with an Apple Account and choose a Development Team for both targets. After the build finishes, open **Safari → Settings → Extensions** and enable ImmerseFree.
 
-請先完成上方 Chrome／Edge 版本安裝，讓共用的 Bridge 可以使用。接著打開 `macOS` 資料夾並執行 **`Install or update Safari.command`**。你需要安裝完整的 Xcode App，只有 Command Line Tools 不夠。第一次執行時，Xcode 可能會打開並要求你登入 Apple 帳號，且替兩個 target 選擇 Development Team。建置完成後，請到 **Safari → 設定 → 延伸功能** 啟用 ImmerseFree。
+請先裝好上面的 Chrome／Edge 版本，共用的 Bridge 才會就位。接著打開 `macOS` 資料夾，執行 **`Install or update Safari.command`**。這一步需要完整的 Xcode App，只有 Command Line Tools 不夠。第一次執行時，Xcode 可能會跳出來要你登入 Apple 帳號，並替兩個 target 各選一個 Development Team。建置完成後，到 **Safari → 設定 → 延伸功能** 把 ImmerseFree 打開。
 
 The local Safari script creates a development-signed app for your own Mac. It is not a notarized public installer and cannot be redistributed as-is.
 
@@ -105,7 +105,7 @@ The local Safari script creates a development-signed app for your own Mac. It is
 
 With page translation enabled, ImmerseFree keeps each original paragraph and places the translated paragraph directly below it with a subtle left border. The result looks like this:
 
-開啟整頁翻譯後，ImmerseFree 會保留每一段原文，並以低調的左側線條把譯文放在原文正下方。使用 ImmerseFree 翻譯網站後，看起來會像這樣：
+開啟整頁翻譯後，原文每一段都留著，譯文接在它正下方，左邊帶一條低調的線。翻出來會像這樣：
 
 ![A website translated by ImmerseFree, showing the original English paragraphs with Traditional Chinese translations below them](docs/assets/translation-preview.png)
 
@@ -317,7 +317,7 @@ Theme ids live in `Extension/core/settings-core.js` (`THEME_IDS`); the styles ar
 
 There is no ImmerseFree account, no ImmerseFree server, and no telemetry endpoint. The extension talks to exactly two kinds of destination: the translation engine you picked, and a helper service running on your own machine. Everything below follows from that.
 
-沒有 ImmerseFree 帳號、沒有 ImmerseFree 伺服器、也沒有回傳統計的端點。擴充功能只跟兩種對象講話：你選的翻譯引擎，以及跑在你自己電腦上的協助服務。下面每一條都是從這件事來的。
+沒有 ImmerseFree 帳號，沒有 ImmerseFree 伺服器，也沒有任何回傳使用統計的端點。擴充功能只跟兩種對象講話：你選的翻譯引擎，還有跑在你自己電腦上的協助服務。下面每一條，都是從這件事推出來的。
 
 - **Nothing routes through the author.** Gemini and custom endpoints are called by your browser directly. The manifest's `host_permissions` lists only `generativelanguage.googleapis.com`, `opencode.ai`, and localhost — there is no author-owned domain in it for traffic to pass through, and you can verify that in one look at `Extension/manifest.json`.
 - **The local Bridge is bound to `127.0.0.1`**, not `0.0.0.0`, so nothing on your network can reach it. The host is hardcoded and cannot be changed by configuration.
@@ -325,21 +325,21 @@ There is no ImmerseFree account, no ImmerseFree server, and no telemetry endpoin
 - **Keys stay in your browser profile.** They are written to `chrome.storage.local` and never synced to any cloud account.
 - **No key ships with anything.** There is no bundled, trial, or fallback credential anywhere in the repository or the installer, and `npm run verify` scans for committed-secret patterns on every run.
 
-- **不會繞經作者。** Gemini 與自訂端點是由你的瀏覽器直接呼叫。manifest 的 `host_permissions` 只列了 `generativelanguage.googleapis.com`、`opencode.ai` 與 localhost——裡面沒有任何作者擁有的網域可以讓流量經過，你打開 `Extension/manifest.json` 看一眼就能確認。
+- **流量不經過作者手上。** Gemini 與自訂端點都是你的瀏覽器直接呼叫。manifest 的 `host_permissions` 只列了 `generativelanguage.googleapis.com`、`opencode.ai` 與 localhost，裡面根本沒有作者名下的網域可以讓流量經過；打開 `Extension/manifest.json` 看一眼就知道。
 - **本機 Bridge 綁在 `127.0.0.1`**，不是 `0.0.0.0`，所以同網路上的其他機器碰不到它。這個位址寫死在程式碼裡，不能用設定改掉。
 - **Bridge 只回應擴充功能。** 除了最小的健康檢查之外，每個端點都要求通過允許的 origin，否則回 `403`；Chrome 那一側是拿一個釘死的擴充功能 ID 做全等比對。翻譯與 OCR 的 POST 請求還另外要求 ImmerseFree 的 request header。
 - **金鑰留在你的瀏覽器設定檔裡。** 它們寫進 `chrome.storage.local`，不會同步到任何雲端帳號。
-- **任何東西都不附金鑰。** repository 與安裝包裡沒有預埋、試用或備援憑證，而且 `npm run verify` 每次執行都會掃描誤提交的 secret 樣式。
+- **哪一包都不附金鑰。** repository 和安裝包裡沒有預埋、試用或備援憑證，而且 `npm run verify` 每跑一次，就掃一次誤提交的 secret 樣式。
 
 Two things this does **not** claim. Local storage is not encrypted, so anyone who can read your browser profile can read the keys — use a dedicated, restricted, low-quota key. And the Safari origin check can only validate the scheme, because Safari assigns a different extension UUID on every machine; that residual gap is written down in the source rather than glossed over. Both of those are things you can go and check in the code, which is the practical benefit of it being open.
 
-有兩件事這裡**沒有**宣稱。本機儲存空間沒有加密，能讀你瀏覽器設定檔的人就讀得到金鑰——請用專用、受限制、低額度的 key。另外 Safari 那一側的 origin 檢查只能驗到 scheme，因為 Safari 在每一台機器上指派的擴充功能 UUID 都不同；這個殘餘缺口是寫在原始碼裡的，沒有被含糊帶過。這兩件事你都可以自己進程式碼裡查，這是開源實際上的好處。
+有兩件事這裡**沒有**掛保證。一是本機儲存空間沒有加密，能讀你瀏覽器設定檔的人就讀得到金鑰，所以請用專用、受限、低額度的 key。二是 Safari 那側的 origin 檢查只驗得到 scheme，因為 Safari 在每一台機器上指派的擴充功能 UUID 都不一樣；這個補不掉的缺口就寫在原始碼裡，沒有含糊帶過。這兩件事你都可以自己翻程式碼查證——開源真正的好處就在這裡。
 
 ## Support the developer｜支持開發者
 
 I am a university student. The biggest burden of maintaining open-source projects like ImmerseFree is the cost of software and AI subscriptions. If you would like to support the project, you can make a small contribution through [Buy Me a Coffee](https://buymeacoffee.com/chang416). Contributions are optional and do not unlock extra features.
 
-我是一名大學生。對我來說，維護 ImmerseFree 這類開源專案最大的負擔，是軟體與 AI 服務昂貴的訂閱費。如果你願意支持這個專案，可以透過 [Buy Me a Coffee](https://buymeacoffee.com/chang416) 小額贊助。贊助完全自願，也不會解鎖額外功能。
+我還在念大學。維護 ImmerseFree 這種開源專案，最大的負擔其實是軟體和 AI 服務的訂閱費。願意支持這個專案的話，可以到 [Buy Me a Coffee](https://buymeacoffee.com/chang416) 小額贊助。贊助純屬自願，也不會因此解鎖任何額外功能。
 
 ## Choose a translation engine｜選擇翻譯引擎
 
@@ -371,7 +371,7 @@ irm https://antigravity.google/cli/install.ps1 | iex
 
 After installation, run `agy`. If no session is saved in the operating system keyring, the CLI opens the browser for Google sign-in. Finish the sign-in, return to the terminal, then run `agy models` to confirm that models are available. Finally, rerun the ImmerseFree installer so its login service can find the new CLI path.
 
-安裝後執行 `agy`。如果作業系統鑰匙圈裡沒有既有 session，CLI 會開啟瀏覽器要求你登入 Google。完成登入並回到終端機後，執行 `agy models`，確認看得到可用模型。最後重新執行 ImmerseFree 安裝程式，讓登入啟動的服務能找到新的 CLI 路徑。
+裝好之後執行 `agy`。如果作業系統的鑰匙圈裡沒有存過登入紀錄，CLI 會開瀏覽器請你登入 Google。登完回到終端機，執行 `agy models`，確認看得到可用的模型。最後再跑一次 ImmerseFree 安裝程式，登入時自動啟動的服務才找得到新的 CLI 路徑。
 
 Official references: [Antigravity CLI installation and authentication](https://antigravity.google/docs/cli/install/) and [headless mode](https://antigravity.google/docs/cli/headless/).
 
@@ -381,7 +381,7 @@ Official references: [Antigravity CLI installation and authentication](https://a
 
 The local OpenCode route requires the `opencode` executable even when the API-key field in ImmerseFree is empty. OpenCode's free-model roster can change and some free models are explicitly time-limited, so do not rely on one permanent model ID.
 
-本機 OpenCode 路線即使在 ImmerseFree 裡沒有填 API key，也仍然需要安裝 `opencode` 執行檔。OpenCode 的免費模型清單可能改變，而且部分免費模型明確標示為限時提供，因此不要依賴某個永久固定的模型 ID。
+走本機 OpenCode 這條路，就算你在 ImmerseFree 裡沒填 API key，還是得先裝好 `opencode` 執行檔。OpenCode 的免費模型清單會變動，其中有些明確標示是限時提供，所以不要把某個模型 ID 當成永遠有效。
 
 On macOS, use the official quick installer or Homebrew:
 
@@ -423,7 +423,7 @@ Official references: [OpenCode installation](https://opencode.ai/docs/#install),
 
 Use a dedicated, restricted, low-quota key. The key is stored in browser local storage, which is not encrypted, and a settings export contains the key in plaintext. Anyone who can inspect your browser profile or read the export file may obtain it. Never commit a key or exported settings file to GitHub. Revoke and rotate an exposed key immediately.
 
-請使用專用、受限制、低額度的 key。key 會儲存在瀏覽器的本機儲存空間中，而該空間沒有加密；匯出的設定檔也會以明文包含 key。能查看你的瀏覽器設定檔或讀取匯出檔的人，就可能取得它。絕對不要把 key 或設定匯出檔提交到 GitHub。若 key 外洩，請立即撤銷並輪替。
+請用專用、受限、低額度的 key。key 存在瀏覽器的本機儲存空間裡，那裡沒有加密；匯出的設定檔也是明文帶著 key。只要有人翻得到你的瀏覽器設定檔，或拿得到匯出檔，就可能把這把 key 帶走。key 和設定匯出檔絕對不要提交到 GitHub。一旦外洩，立刻撤銷，換一把新的。
 
 See Google's [Gemini API key security guidance](https://ai.google.dev/gemini-api/docs/api-key#security) and [API key restrictions](https://docs.cloud.google.com/docs/authentication/api-keys#api_key_restrictions).
 
@@ -449,7 +449,7 @@ Open a normal `http://` or `https://` page, click the ImmerseFree toolbar icon, 
 
 Choose how the translation looks in **Options → Bilingual display**: 12 themes, from a classic left border to underline, highlight, card, or plain — all twelve are listed and described in the **Twelve bilingual themes** section above. Switching a theme restyles pages you have already translated, immediately. **Translation-only** mode hides the original and shows only the translation, and you can switch back at any time; the original paragraphs are only hidden, never removed from the page, so nothing a site's own scripts depend on gets broken.
 
-在 **選項 → 雙語顯示** 選擇譯文的長相：12 種主題，從經典左側邊線到底線、螢光、卡片、無樣式都有——十二種在上面的**十二種雙語主題**那一節有逐一列名與說明。換主題會立刻替已經翻好的頁面換裝。**僅譯文** 模式會隱藏原文只顯示譯文，隨時可以切回來；原文段落只是被隱藏，節點不會從頁面上拆掉，所以網站自己的腳本依賴的東西不會被弄壞。
+在 **選項 → 雙語顯示** 選擇譯文的長相：12 種主題，從經典左側邊線到底線、螢光、卡片、無樣式都有——十二種在上面的**十二種雙語主題**那一節有逐一列名與說明。換主題會立刻替已經翻好的頁面換裝。**僅譯文** 模式會把原文藏起來、只留譯文，隨時可以切回來；原文段落只是藏著，節點還留在頁面上，網站自己的腳本要用的東西不會被弄壞。
 
 If you would rather not open the popup every time, turn on the floating ball. It sits at the edge of the page, snaps back when you drag it, translates the page when clicked, and its menu offers translate, restore, translation-only／bilingual, and hide.
 
@@ -483,7 +483,7 @@ On Netflix and Disney+, turn on **Dual subtitles**, or press `Alt + Shift + D`. 
 
 To keep a proper noun consistent for a whole season, open the popup's glossary and pin its translation. To take the subtitles with you, use **Export SRT** and choose translation only, original only, or bilingual — a file on your disk, at no charge, which is the one subtitle feature Immersive Translate reserves for its paid tiers.
 
-想讓某個專有名詞在整季裡譯法一致，就到彈出視窗的術語表把它的譯法釘起來。想把字幕帶走，用 **匯出 SRT**，可選只要譯文、只要原文，或雙語——存成檔案放進你自己的硬碟，不用錢；而字幕檔下載正是沈浸式翻譯留給付費方案的那一項。
+想讓某個專有名詞在整季裡都是同一個譯法，就到彈出視窗的術語表把它釘起來。想把字幕帶走，用 **匯出 SRT**，可選只要譯文、只要原文，或雙語，存成檔案放進你自己的硬碟，不用錢。而字幕檔下載這一項，正是沈浸式翻譯留給付費方案的。
 
 **Episode study** turns the current episode's subtitles into vocabulary and sentence-pattern notes. Enter a TOEIC, IELTS, or GEPT score — or say you are a complete beginner — and ImmerseFree maps it onto the six CEFR levels (A1 to C2, the standard European language-ability scale, where A1 is beginner and C2 is near-native) and writes the notes at that level.
 
@@ -503,7 +503,7 @@ Books longer than 500 blocks ask for confirmation first, because that means a lo
 
 Open a PDF in the browser, open the ImmerseFree popup, and start PDF translation. Normal PDFs use their text layer. Scanned pages use the local Windows OCR or macOS Vision helper when available. Password-protected, damaged, or non-PDF responses cannot be read.
 
-在瀏覽器中開啟 PDF，打開 ImmerseFree 彈出視窗並開始 PDF 翻譯。一般 PDF 會使用內建文字層；掃描頁面則在可用時使用本機 Windows OCR 或 macOS Vision 元件。受密碼保護、已損壞，或連結實際沒有回傳 PDF 的檔案無法讀取。
+在瀏覽器裡打開 PDF，叫出 ImmerseFree 彈出視窗，開始 PDF 翻譯。一般 PDF 直接讀它的文字層；掃描頁則在能用的時候交給本機的 Windows OCR 或 macOS Vision 元件。加了密碼、檔案損壞，或那個連結根本沒回傳 PDF 的，都讀不了。
 
 The reader has a translation-only toggle, and you can save the result as a bilingual PDF or as a Word `.docx`.
 
@@ -616,7 +616,7 @@ Open `chrome://extensions`, turn on **Developer mode**, and click **Pack extensi
 
 A locally packed CRX is for development or managed enterprise deployment. Ordinary Windows and macOS Chrome users cannot one-click install an arbitrary self-hosted CRX; public installation normally requires the Chrome Web Store.
 
-本機封裝的 CRX 適合開發或受管理的企業部署。一般 Windows 與 macOS Chrome 使用者不能用單擊方式安裝任意自行託管的 CRX；公開安裝通常必須透過 Chrome Web Store。
+本機封裝的 CRX 適合開發，或企業自己統一部署。一般 Windows 與 macOS 的 Chrome 使用者沒辦法一鍵裝上自行架設的 CRX；要讓所有人都裝得到，通常還是得走 Chrome Web Store。
 
 ### Publish to Chrome Web Store｜上架 Chrome Web Store
 
@@ -725,7 +725,7 @@ Bridge 會在受沙盒限制的暫存工作目錄執行 Antigravity 視覺 OCR�
 
 API keys entered in the extension are stored locally but are not encrypted. Settings exports contain the keys in plaintext. Protect and delete exports after transfer. If you need stronger secret isolation for a production deployment, use a backend proxy and keep provider credentials on the server.
 
-輸入擴充功能的 API key 會儲存在本機，但沒有加密。設定匯出檔會以明文包含 key。搬移設定後請妥善保護並刪除匯出檔。正式部署若需要更強的秘密隔離，請使用後端 proxy，把 provider 憑證留在伺服器端。
+你填進擴充功能的 API key 存在本機，而且沒有加密；設定匯出檔也是明文帶著 key。搬完設定請保管好，並把匯出檔刪掉。正式部署如果需要更嚴的機密隔離，請改用後端 proxy，把 provider 憑證留在伺服器端。
 
 ## Move settings to another computer｜把設定搬到另一台電腦
 
@@ -735,7 +735,7 @@ On the old computer, open ImmerseFree **Options** and click **Export settings**.
 
 This is a file you carry, not a cloud sync — moving settings is a deliberate act, and there is no copy of your configuration sitting on anyone's server. Immersive Translate does offer real cross-device sync, which is genuinely more convenient, and reserves it for Pro and Max.
 
-這是你自己搬的一個檔案，不是雲端同步——搬設定是一個你主動做的動作，也不會有一份你的設定放在誰的伺服器上。沈浸式翻譯確實有真正的跨裝置同步，那確實比較方便，而它是 Pro 與 Max 才有的功能。
+這是一個你自己拿著走的檔案，不是雲端同步。搬設定是你主動做的動作，你的設定也不會有一份躺在誰的伺服器上。沈浸式翻譯確實有真正的跨裝置同步，那確實方便得多，而那是 Pro 與 Max 才有的功能。
 
 ## Uninstall｜解除安裝
 
