@@ -4,21 +4,25 @@
 
 # ImmerseFree
 
-ImmerseFree is an open-source bilingual browser translator for web pages, video subtitles, EPUB and PDF books, Word export, selected text, hovered paragraphs, and input fields. It keeps the original text visible and inserts the translation underneath it. Windows and macOS are supported; Chrome, Microsoft Edge, and Safari installation paths are included.
+**A bilingual translator for the whole web — pages, video subtitles, EPUB and PDF books, selected text, and input fields — with nothing held back for a paid tier, because there is no paid tier.**
 
-ImmerseFree 是一套開源的瀏覽器雙語翻譯工具，可翻譯整個網頁、影片字幕、EPUB 與 PDF 電子書、輸出 Word，也能翻譯反白文字、滑鼠懸停段落與輸入欄位。它會保留原文，並把譯文插在原文下方。支援 Windows 與 macOS，並提供 Chrome、Microsoft Edge 與 Safari 的安裝方式。
+**一套涵蓋整個網路的雙語翻譯工具——網頁、影片字幕、EPUB 與 PDF 電子書、反白文字、輸入欄位——沒有任何功能被留給付費方案，因為它根本沒有付費方案。**
 
-It runs on model quota you already have. Nothing is bundled and no key ships with the installer: pick the Antigravity CLI, the free OpenCode models, your own Gemini key, or any OpenAI-compatible endpoint.
+ImmerseFree ships a complete built-in English interface alongside Traditional Chinese, and it is made for users worldwide, not only for people in Taiwan. It follows your browser language on first launch and switches at any time in **Settings → Interface language**. It translates among English, Traditional Chinese, Simplified Chinese, Japanese, Korean, and Thai — in any direction, not just into Chinese. And because the custom-endpoint option accepts **any** OpenAI-compatible API, you are not tied to whichever providers happen to be reachable from Taiwan: point it at OpenAI, Groq, Together, OpenRouter, DeepSeek, or a model running on your own machine through Ollama or LM Studio, whichever is available where you are.
 
-它跑在你手上已經有的模型額度上。安裝包不內含任何引擎，也不附任何金鑰：你可以選 Antigravity CLI、OpenCode 免費模型、你自己的 Gemini 金鑰，或任何相容 OpenAI 介面的服務。
+ImmerseFree 是寫給世界各地讀者用的，不限定語言方向。介面完整提供英文與繁體中文，第一次開啟跟隨瀏覽器語言，也可以隨時到 **設定 → 介面語言** 切換。翻譯支援英文、繁體中文、簡體中文、日文、韓文與泰文之間互譯，不是只能翻成中文。而且自訂端點可以接**任何**相容 OpenAI 介面的服務，所以你不會被綁在「剛好從台灣連得到」的那幾家：OpenAI、Groq、Together、OpenRouter、DeepSeek，或用 Ollama、LM Studio 跑在自己電腦上的模型，你所在地能用哪個就接哪個。
 
-ImmerseFree includes a complete built-in English interface as well as Traditional Chinese. It follows your browser language on first launch, and you can switch languages at any time in **Settings → Interface language**. It is made for users worldwide, not only for people in Taiwan, and can translate among English, Traditional Chinese, Simplified Chinese, Japanese, Korean, and Thai. Translation-provider availability and quotas may vary by region.
+It runs on model quota you already have. Nothing is bundled and no key ships with the installer: pick the Antigravity CLI, the free OpenCode models, your own Gemini key, or any OpenAI-compatible endpoint. There is no ImmerseFree account, no ImmerseFree server, and no ImmerseFree meter. Your text goes from your browser to the engine you chose, and that is the entire path.
 
-ImmerseFree 內建完整的英文與繁體中文介面。第一次開啟時會跟隨瀏覽器語言，也可以隨時到 **設定 → 介面語言** 切換。它不是只提供給台灣使用者；世界各地的使用者都能使用，並可在英文、繁體中文、簡體中文、日文、韓文與泰文之間翻譯。各翻譯服務在不同地區的供應狀況與額度可能不同。
+它跑在你手上已經有的模型額度上。安裝包不內含任何引擎，也不附任何金鑰：你可以選 Antigravity CLI、OpenCode 免費模型、你自己的 Gemini 金鑰，或任何相容 OpenAI 介面的服務。沒有 ImmerseFree 帳號、沒有 ImmerseFree 伺服器、也沒有 ImmerseFree 在旁邊計費。你的文字從你的瀏覽器直接送到你選的引擎，全程就這一段路。
 
-No API key or private login credential is included in this repository.
+Subtitle downloads, scanned-PDF OCR, glossaries, custom prompts, translation-only mode, twelve display themes — these are the things translation products usually put behind a subscription. Here they are just features, and they cost nothing. There is no bill to send you, because the project never handles your content and runs no service that could meter it.
 
-本 repository 不包含任何 API key 或私人登入憑證。
+字幕檔下載、掃描 PDF 的 OCR、術語表、自訂提示詞、僅譯文模式、十二種顯示主題——這些通常是翻譯產品擺在訂閱牆後面的東西。在這裡它們就只是功能，而且不用錢。沒有帳單可以寄給你，因為這個專案不經手你的內容，也沒有跑任何可以拿來計費的服務。
+
+Windows and macOS are supported; Chrome, Microsoft Edge, and Safari installation paths are included. No API key or private login credential is included in this repository.
+
+支援 Windows 與 macOS，並提供 Chrome、Microsoft Edge 與 Safari 的安裝方式。本 repository 不包含任何 API key 或私人登入憑證。
 
 > [!IMPORTANT]
 > ImmerseFree is not yet in any browser store. Chrome and Edge therefore require one manual **Load unpacked** step per browser profile, and Safari requires Xcode and your own Apple signing team. These are browser security restrictions and no installer can bypass them — an installer is not allowed to add an extension to your browser on your behalf, so the last step has to be yours.
@@ -138,6 +142,199 @@ If something does not work, start with [`docs/TROUBLESHOOTING.md`](docs/TROUBLES
 
 如果有東西不能用，先看 [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)。
 
+## How it compares｜和沈浸式翻譯比一比
+
+The obvious comparison is [Immersive Translate](https://immersivetranslate.com/), the product most people in this space already use. It is a good product with twenty million users, and it does several things ImmerseFree cannot do at all. So here is the comparison with both columns filled in honestly — the parts where a subscription is the difference, and the parts where they are simply ahead.
+
+這個領域最常被拿來比的是[沈浸式翻譯](https://immersivetranslate.com/)，多數人本來就在用它。它是個好產品，有兩千萬使用者，而且有好幾件事是 ImmerseFree 根本做不到的。所以下面這張表兩邊都照實填：哪些地方差在一張訂閱單，哪些地方是人家就是比較強。
+
+**Where the difference is a subscription｜差在一張訂閱單的地方**
+
+| | ImmerseFree | Immersive Translate |
+|---|---|---|
+| Download the subtitles as a file | Free. `.srt`, three modes: translation only, original only, or bilingual | Watching bilingual subtitles is free and unlimited; **downloading** the subtitle file is Pro/Max only |
+| Scanned-PDF OCR | Free. Runs on your own machine via Windows OCR or macOS Vision. No page cap | "PDF Pro" is Pro/Max only, 1,000 pages per month. The free tier handles standard, non-scanned PDFs only |
+| Glossary applied to AI translation | Free. 536 preset terms in three domains, plus your own | The AI glossary does not apply in the free built-in AI translation mode |
+| Custom translation prompt | Free | Not available in the free built-in AI translation mode |
+| Frontier models (Claude, GPT, Gemini Pro) | Whatever your own account or API key allows | Max plan — NT$599/month, or NT$7,188/year |
+| Daily request limit | None from ImmerseFree; only your engine's own quota applies | The free tier has a daily cap on translation requests |
+| Moving settings between computers | Free, by settings file export and import | Cross-device settings sync is a Pro/Max feature |
+
+| | ImmerseFree | 沈浸式翻譯 |
+|---|---|---|
+| 把字幕存成檔案 | 免費。`.srt` 三種模式：只要譯文、只要原文、雙語 | 「看」雙語字幕免費且不限次數；**下載**字幕檔是 Pro／Max 專屬 |
+| 掃描 PDF 的 OCR | 免費。用你電腦上的 Windows OCR 或 macOS Vision 跑，沒有頁數上限 | 「PDF Pro」是 Pro／Max 專屬，每月 1,000 頁；免費版只支援非掃描的一般 PDF |
+| 術語表套用到 AI 翻譯 | 免費。內建 536 條三領域術語，另可自訂 | 免費版內建的「免費 AI 翻譯模式」不支援 AI 術語庫 |
+| 自訂翻譯提示詞 | 免費 | 免費版內建的「免費 AI 翻譯模式」不支援 |
+| 頂級模型（Claude、GPT、Gemini Pro） | 你自己的帳號或金鑰能用到哪就用到哪 | Max 方案——每月 NT$599，年繳 NT$7,188 |
+| 每日請求上限 | ImmerseFree 不設限，只受你自己引擎的額度限制 | 免費版單日翻譯請求設有上限 |
+| 把設定搬到另一台電腦 | 免費，用設定檔匯出匯入 | 跨裝置同步設定是 Pro／Max 功能 |
+
+**Where Immersive Translate is ahead｜沈浸式翻譯比較強的地方**
+
+| | ImmerseFree | Immersive Translate |
+|---|---|---|
+| Video platforms | Three: YouTube (AI subtitles), Netflix and Disney+ (dual official tracks) | Their docs say 50+, their home page says over 100 |
+| Installing it | Manual **Load unpacked** in every browser profile; Safari needs Xcode and your own signing team | One click from the Chrome, Edge, Firefox, and Safari stores |
+| Phones and tablets | None. Desktop only | iOS and Android apps |
+| Firefox | Not supported | Supported |
+| Document formats it reads | EPUB and PDF | PDF, ePub, HTML, JSON, TXT, DOCX, Markdown, and subtitle files |
+| Layout-preserving PDF translation | No. The bilingual PDF is a rebuilt document, not the original layout | BabelDOC layout-preserving translation, on every plan including free |
+| Manga, images, live streams, meetings | None of them | All of them |
+| Compliance certifications | None. It is one student's open-source project | ISO 27001 and ISO 27701 |
+
+| | ImmerseFree | 沈浸式翻譯 |
+|---|---|---|
+| 影音平台 | 三個：YouTube（AI 字幕）、Netflix 與 Disney+（官方雙軌） | 官方文件寫 50+，首頁寫超過 100 個 |
+| 怎麼安裝 | 每個瀏覽器設定檔都要手動「載入未封裝項目」；Safari 還需要 Xcode 與你自己的簽署 Team | Chrome、Edge、Firefox、Safari 商店一鍵安裝 |
+| 手機平板 | 沒有，只有桌機 | 有 iOS 與 Android App |
+| Firefox | 不支援 | 支援 |
+| 讀得進去的文件格式 | EPUB 與 PDF | PDF、ePub、HTML、JSON、TXT、DOCX、Markdown 與字幕檔 |
+| 保留排版的 PDF 翻譯 | 沒有。雙語 PDF 是重新排出來的文件，不是原版面 | BabelDOC 保留排版翻譯，含免費版在內所有方案都有 |
+| 漫畫、圖片、直播、會議翻譯 | 都沒有 | 都有 |
+| 合規認證 | 沒有。這是一個學生的開源專案 | ISO 27001 與 ISO 27701 |
+
+Pricing and feature rows for Immersive Translate were read from [their pricing page](https://immersivetranslate.com/zh-TW/pricing/), [their documentation](https://immersivetranslate.com/docs/), and their home page on **2026-09-04**. Their Pro plan was NT$229/month or NT$2,748/year and Max was NT$599/month or NT$7,188/year at that time; regional pricing may differ. Both products change, so treat the published pages as the current source of truth rather than this table.
+
+沈浸式翻譯的價格與功能欄位，是 **2026-09-04** 從[他們的定價頁](https://immersivetranslate.com/zh-TW/pricing/)、[官方文件](https://immersivetranslate.com/docs/)與首頁讀到的。當時 Pro 是每月 NT$229 或年繳 NT$2,748，Max 是每月 NT$599 或年繳 NT$7,188；不同地區的定價可能不同。兩邊的產品都會改版，請以雙方官網公開資訊為準，不要以這張表為準。
+
+## Netflix and Disney+: subtitles that cost nothing to translate｜Netflix 與 Disney+：翻譯成本為零的字幕
+
+Most translators treat a Netflix episode the same way they treat a blog post: read the text, send it to a model, wait, paint the result. That is a strange thing to do, because the episode already ships with the answer.
+
+多數翻譯工具處理一集 Netflix 的方式，跟處理一篇部落格文章一樣：讀出文字、送給模型、等、把結果畫上去。這其實很奇怪，因為那一集本來就已經附了答案。
+
+A streaming manifest lists **every** subtitle language at once. The player just mounts one of them at a time. ImmerseFree goes and fetches the one you did not pick, and draws it under the one you did. That means: no model call, no API key needed, no quota consumed, nothing to wait for — and the second line is the distributor's own professional translation, not a machine's guess at it. The timecodes come from the same official file, so the two lines are locked together frame for frame; there is no drift to correct.
+
+串流平台的播放清單裡本來就同時列著**所有**語言的字幕，播放器只是一次掛一條。ImmerseFree 把你沒選到的那一條抓下來，疊在你選的那條底下。所以：不呼叫模型、不需要 API key、不吃額度、不用等——而且第二行是片商自己的專業翻譯，不是機器猜出來的。時間碼出自同一份官方檔案，兩行是鎖在一起的，不會有需要校正的漂移。
+
+It tries three routes in order and uses whichever works: the subtitle tracks the player already mounted on the `<video>` element, then the HLS or DASH playlist it intercepted (parsed, then the full track fetched), then the subtitle file URL the player itself already requested. Disney+ draws its subtitles inside shadow DOM, where an ordinary `querySelectorAll` cannot reach, so ImmerseFree walks the shadow trees too — without that, its player looks like it has no subtitles at all.
+
+它會依序試三條路，哪條通就用哪條：播放器已經掛在 `<video>` 上的字幕軌、攔截到的 HLS 或 DASH 播放清單（解析後抓完整份），以及播放器自己已經抓過的字幕檔網址。Disney+ 把字幕畫在 shadow DOM 裡，一般的 `querySelectorAll` 穿不進去，所以 ImmerseFree 連 shadow 樹一起走——沒有這層，它的播放器從外面看就像完全沒有字幕。
+
+One nice detail: if the subtitle you selected in the player is already in your target language, a second Chinese line would be pointless, so ImmerseFree switches the second line to your fallback language instead. It decides this from the text actually on screen, not from the player's settings, which are often stale.
+
+一個小地方：如果你在播放器裡選的字幕本來就是你的目標語言，再疊一行同語言沒有意義，這時 ImmerseFree 會改配你設定的備援語言。判斷依據是畫面上實際顯示的那行字，不是播放器的設定值——設定值常常是舊的。
+
+**The limit, plainly stated.** This only works when that title actually carries a second subtitle track in the language you want. Licensing varies by region and by title, so some things will not have it. When there is no official track, that is what the AI subtitle path below is for. Dual subtitles cover Netflix and Disney+ only; the two modes are mutually exclusive and switching one on stops the other.
+
+**限制，直說。** 這只有在那部片真的附了你要的語言那條字幕軌時才成立。授權因地區與片單而異，有些片就是沒有。沒有官方軌的時候，就是下面那條 AI 字幕路線要處理的事。雙軌字幕只支援 Netflix 與 Disney+；兩種模式互斥，開一個就會關掉另一個。
+
+Defined in `Extension/content/dual-subtitle.js` and `Extension/core/streaming-subtitle-core.js`.
+
+實作在 `Extension/content/dual-subtitle.js` 與 `Extension/core/streaming-subtitle-core.js`。
+
+## AI subtitles: three steps before the model ever sees a word｜AI 字幕：模型看到字之前的三道工
+
+On YouTube there is usually no second official track, so the translation has to be generated. How good it turns out depends mostly on what happens *before* the model is called. ImmerseFree does three things first, each aimed at a specific way that sending raw captions straight to a model goes wrong.
+
+在 YouTube 上通常沒有第二條官方軌，譯文得自己生。而譯得好不好，多半取決於呼叫模型**之前**做了什麼。ImmerseFree 在那之前做三件事，各自對應「照原樣送翻」會壞掉的一種情況。
+
+### Step 1 — Put the sentence back together｜第一步：先把句子接回來
+
+A player cuts captions to a reading rhythm, not to meaning. `"I think"` appears, then `"we should leave now."` Send those to a model one at a time and you have handed it two fragments and asked for a translation of each. Other tools do exactly that. ImmerseFree merges the fragments back into whole sentences first, and translates a sentence at a time; every fragment in the group then displays the same complete translation, so you see the whole sentence no matter which piece is on screen.
+
+播放器切字幕是照閱讀節奏切的，不是照語意切。畫面先出現 `"I think"`，再出現 `"we should leave now."`。把這兩片分別送給模型，等於丟給它兩個半句叫它各翻一次。別的工具就是這樣做的。ImmerseFree 會先把碎片接回完整句子，以「一句」為單位送翻；組內每一片字幕接著都顯示同一句完整譯文，所以不管播到哪一片，你看到的都是整句。
+
+The merge rules are all real constants you can go read: a gap of more than **400 ms** between cues means someone else started talking or the scene changed, so it becomes a new sentence; a merged group is capped at **7 seconds** and **160 characters** so a subtitle never freezes on screen or arrives at the model as a wall of text. Sentence ends are detected from punctuation, with closing quotes and brackets stripped first — `He left."` ends on the period, not the quote mark — and with an abbreviation list so `Mr.`, `e.g.`, `a.m.` and `Ph.D` do not chop a sentence in half. Words that are commonly both an abbreviation and an ordinary word, like `no.` and `co.`, are deliberately left out of that list, because including them would cause the opposite error.
+
+合併的判準全是你可以自己去讀的實際常數：前後字幕間隔超過 **400 毫秒**，代表換人講或換場景，就算兩句；一組合併後上限是 **7 秒**與 **160 個字元**，字幕才不會卡在畫面上不動，也不會變成一大塊文字丟給模型。句尾靠標點判斷，而且會先把結尾的引號、括號剝掉——`He left."` 的句尾是句點不是引號——另外配一張縮寫表，讓 `Mr.`、`e.g.`、`a.m.`、`Ph.D` 不會把一句話硬切成兩句。像 `no.`、`co.` 這種同時也是常用單字的，刻意不收進表裡，收了會反過來製造相反的錯誤。
+
+Rules and constants: `Extension/core/subtitle-merge-core.js`.
+
+規則與常數：`Extension/core/subtitle-merge-core.js`。
+
+### Step 2 — Tell the model what it is watching｜第二步：告訴模型它在看什麼
+
+A sentence with no context is a guessing game. `"He's clean."` means one thing in a crime drama and another in a documentary about water. So each batch of **12 subtitle sentences** goes out with three layers of context attached:
+
+沒有上下文的句子只能用猜的。`"He's clean."` 在犯罪影集裡跟在一部講水質的紀錄片裡，是兩個意思。所以每一批 **12 句字幕**送出去時，都帶著三層上下文：
+
+- **The video layer** — title, channel, description, source and target language. Fields that cannot be read are left out entirely rather than sent as empty strings, because an empty string tells the model "this video has no channel", which is worse than saying nothing.
+- **The glossary layer** — only the terms that actually appear in this batch, not the whole glossary.
+- **The dialogue layer** — the last 8 completed sentences as bilingual pairs, roughly 30 to 60 seconds of conversation, so pronouns and callbacks still resolve.
+
+- **影片層**——標題、頻道、描述、原文與目標語言。讀不到的欄位整個省略，不會塞空字串進去，因為空字串等於告訴模型「這支影片沒有頻道」，那比不寫更糟。
+- **術語層**——只帶這一批裡真的出現的術語，不是整本術語表。
+- **對話層**——最近 8 句已完成的句子，以雙語對的形式帶上，大約是 30 到 60 秒的對話，代名詞和前面提過的東西才接得起來。
+
+There is a fourth thing riding along in the same prompt: a short-sentence flag. If a line is on screen for under **1.2 seconds**, or would need to be read at more than **20 characters per second**, the model is asked to keep that particular translation short. This costs no extra API call — it travels with the batch that was going out anyway.
+
+同一個 prompt 裡還搭了第四樣東西：極短句標記。如果某一行在畫面上停留不到 **1.2 秒**，或算下來要用每秒超過 **20 個字元**的速度才讀得完，就會請模型把那一句的譯文壓短。這不會多花一次 API 呼叫——它跟著本來就要送出去的那一批一起走。
+
+Layers: `Extension/core/subtitle-context-core.js`. Batch size: `Extension/core/batch-core.js`.
+
+三層在 `Extension/core/subtitle-context-core.js`，批次大小在 `Extension/core/batch-core.js`。
+
+### Step 3 — Make it fit without covering the picture｜第三步：讓它放得下，又不擋畫面
+
+A translated line is usually longer than the original, and a subtitle that grows into a three-line block is a subtitle that is now the movie. ImmerseFree measures the rendered width in the browser and handles it in that order: keep it on one line; if it overflows, shrink the font, down to **65%** of its size on YouTube (**72%** on Netflix and Disney+, where the player's own type is smaller to begin with); and only if it still does not fit, fall back to two lines at the original size. Line breaks are placed at punctuation and at English word boundaries, roughly 14 to 18 full-width characters a line, never more than two lines.
+
+譯文通常比原文長，而一條字幕如果脹成三行，它就從字幕變成主角了。ImmerseFree 會在瀏覽器裡實測算出來的寬度，然後照這個順序處理：先維持一行；放不下就縮字級，YouTube 最低縮到原本的 **65%**（Netflix 與 Disney+ 是 **72%**，因為播放器本身的字就比較小）；縮到底還是放不下，才退回兩行，而且字級維持原大小。斷行點挑在標點與英文詞界，一行大約 14 到 18 個全形字，最多兩行。
+
+**Why not just let the model break the lines?** Because it is asked to return structured JSON containing a batch of translations. A newline the model inserts on its own is both unreliable — it does not know how wide your player is, or what font size you are running — and actively dangerous, since a stray line break inside a JSON string is how a whole batch comes back unparseable and the entire block of subtitles disappears. Where to break a line depends on how wide things actually are on screen, and only the browser knows that, so the browser is where it gets decided.
+
+**為什麼不乾脆讓模型自己斷行？** 因為模型被要求回傳的是一批譯文組成的結構化 JSON。模型自己插的換行，一來不可靠——它不知道你的播放器多寬、你的字級開多大；二來實際上很危險，因為 JSON 字串裡跑出一個換行，整批就會解不出來，那一段字幕會整塊消失。要斷在哪裡得先知道實際有多寬，而只有瀏覽器知道真正的像素寬度，所以這件事在瀏覽器裡算。
+
+Sizing and fallback: `Extension/core/youtube-subtitle-core.js` and `Extension/core/streaming-subtitle-core.js`. Line breaking: `Extension/core/subtitle-linebreak-core.js`.
+
+字級與退回邏輯在 `Extension/core/youtube-subtitle-core.js` 與 `Extension/core/streaming-subtitle-core.js`，斷行器在 `Extension/core/subtitle-linebreak-core.js`。
+
+## Twelve bilingual themes｜十二種雙語主題
+
+How the translation looks is personal, and one default cannot suit everyone. Pick one in **Options → Bilingual display**:
+
+譯文長什麼樣是各人喜好，一個預設值滿足不了所有人。到 **選項 → 雙語顯示** 挑一個：
+
+| Theme | How the translation is marked | 主題 | 譯文怎麼標示 |
+|---|---|---|---|
+| `classic` | A subtle left border. The default | 經典邊線 | 低調的左側線條，預設值 |
+| `underline` | A thin solid underline | 底線 | 細的實線底線 |
+| `dashed` | A dashed underline | 虛線 | 虛線底線 |
+| `wavy` | A wavy underline | 波浪線 | 波浪底線 |
+| `highlight` | Highlighter pen, wrapping cleanly across line ends | 高亮 | 螢光筆，跨行時斷得乾淨 |
+| `quote` | A pull-quote block: left rule plus a tinted background | 引用塊 | 引言區塊：左側粗線加淡色底 |
+| `faded` | The translation at 62% opacity, so the original leads | 弱化 | 譯文透明度 62%，讓原文當主角 |
+| `italic` | Italic | 斜體 | 斜體 |
+| `bold` | Bold | 粗體 | 粗體 |
+| `card` | A rounded card with one light shadow | 紙片 | 圓角小卡，配一層淡陰影 |
+| `divider` | A hairline rule above the translation | 分隔線 | 譯文上方一條細分隔線 |
+| `plain` | No decoration at all, just the text | 無裝飾 | 一點裝飾都沒有，只有文字 |
+
+The options page previews all twelve at once, and each preview is rendered by the same `content.css` that styles real pages — there is no "looks different once you actually use it" gap. Switching a theme restyles pages you have already translated, immediately; you do not retranslate anything to change how it looks.
+
+選項頁會一次預覽十二種，而且每一格預覽吃的就是實際套在網頁上的那份 `content.css`——不存在「預覽好看、實際不一樣」的落差。換主題會立刻替已經翻好的頁面換裝，不需要為了改外觀重翻任何東西。
+
+Dark mode is handled where it matters rather than everywhere. Only the three themes that carry a colour of their own — `highlight`, `quote`, and `card` — get repainted for dark backgrounds. The other nine derive their decoration from `currentColor`, so they follow whatever the page's own text colour is and are correct on a dark site without any special case. Translated text also carries CJK typography that Latin-only styling misses: 1.7 line height, punctuation trimming at line starts, and automatic spacing between CJK and Latin runs.
+
+深色模式只在真正需要的地方處理，不是全部一起改。只有三種自帶顏色的主題——`highlight`、`quote`、`card`——會為深色背景重新配色。另外九種的裝飾色都是從 `currentColor` 混出來的，會自動跟著頁面自己的文字顏色走，在深色網站上不需要特例就是對的。譯文另外套了純拉丁字排版會忽略的中日韓細節：行高 1.7、行首標點擠壓，以及中西文之間自動留白。
+
+Theme ids live in `Extension/core/settings-core.js` (`THEME_IDS`); the styles are in `Extension/content/content.css`.
+
+主題 id 定義在 `Extension/core/settings-core.js` 的 `THEME_IDS`，樣式在 `Extension/content/content.css`。
+
+## Why your text stays yours｜為什麼你的內容還是你的
+
+There is no ImmerseFree account, no ImmerseFree server, and no telemetry endpoint. The extension talks to exactly two kinds of destination: the translation engine you picked, and a helper service running on your own machine. Everything below follows from that.
+
+沒有 ImmerseFree 帳號、沒有 ImmerseFree 伺服器、也沒有回傳統計的端點。擴充功能只跟兩種對象講話：你選的翻譯引擎，以及跑在你自己電腦上的協助服務。下面每一條都是從這件事來的。
+
+- **Nothing routes through the author.** Gemini and custom endpoints are called by your browser directly. The manifest's `host_permissions` lists only `generativelanguage.googleapis.com`, `opencode.ai`, and localhost — there is no author-owned domain in it for traffic to pass through, and you can verify that in one look at `Extension/manifest.json`.
+- **The local Bridge is bound to `127.0.0.1`**, not `0.0.0.0`, so nothing on your network can reach it. The host is hardcoded and cannot be changed by configuration.
+- **The Bridge only answers the extension.** Every endpoint beyond a minimal health check requires an allowed origin and returns `403` otherwise, and the Chrome origin is an exact-match check against one pinned extension ID. Translation and OCR POSTs additionally require an ImmerseFree request header.
+- **Keys stay in your browser profile.** They are written to `chrome.storage.local` and never synced to any cloud account.
+- **No key ships with anything.** There is no bundled, trial, or fallback credential anywhere in the repository or the installer, and `npm run verify` scans for committed-secret patterns on every run.
+
+- **不會繞經作者。** Gemini 與自訂端點是由你的瀏覽器直接呼叫。manifest 的 `host_permissions` 只列了 `generativelanguage.googleapis.com`、`opencode.ai` 與 localhost——裡面沒有任何作者擁有的網域可以讓流量經過，你打開 `Extension/manifest.json` 看一眼就能確認。
+- **本機 Bridge 綁在 `127.0.0.1`**，不是 `0.0.0.0`，所以同網路上的其他機器碰不到它。這個位址寫死在程式碼裡，不能用設定改掉。
+- **Bridge 只回應擴充功能。** 除了最小的健康檢查之外，每個端點都要求通過允許的 origin，否則回 `403`；Chrome 那一側是拿一個釘死的擴充功能 ID 做全等比對。翻譯與 OCR 的 POST 請求還另外要求 ImmerseFree 的 request header。
+- **金鑰留在你的瀏覽器設定檔裡。** 它們寫進 `chrome.storage.local`，不會同步到任何雲端帳號。
+- **任何東西都不附金鑰。** repository 與安裝包裡沒有預埋、試用或備援憑證，而且 `npm run verify` 每次執行都會掃描誤提交的 secret 樣式。
+
+Two things this does **not** claim. Local storage is not encrypted, so anyone who can read your browser profile can read the keys — use a dedicated, restricted, low-quota key. And the Safari origin check can only validate the scheme, because Safari assigns a different extension UUID on every machine; that residual gap is written down in the source rather than glossed over. Both of those are things you can go and check in the code, which is the practical benefit of it being open.
+
+有兩件事這裡**沒有**宣稱。本機儲存空間沒有加密，能讀你瀏覽器設定檔的人就讀得到金鑰——請用專用、受限制、低額度的 key。另外 Safari 那一側的 origin 檢查只能驗到 scheme，因為 Safari 在每一台機器上指派的擴充功能 UUID 都不同；這個殘餘缺口是寫在原始碼裡的，沒有被含糊帶過。這兩件事你都可以自己進程式碼裡查，這是開源實際上的好處。
+
 ## Support the developer｜支持開發者
 
 I am a university student. The biggest burden of maintaining open-source projects like ImmerseFree is the cost of software and AI subscriptions. If you would like to support the project, you can make a small contribution through [Buy Me a Coffee](https://buymeacoffee.com/chang416). Contributions are optional and do not unlock extra features.
@@ -250,9 +447,9 @@ Open a normal `http://` or `https://` page, click the ImmerseFree toolbar icon, 
 
 打開一般的 `http://` 或 `https://` 網頁，按工具列上的 ImmerseFree 圖示，選擇引擎／模型，再按 **翻譯網頁**。再次執行相同動作即可移除插入的譯文。按 `Alt + Shift + B`（macOS 是 `Control + Shift + B`）可以不開彈出視窗直接做同一件事。
 
-Choose how the translation looks in **Options → Bilingual display**: 12 themes, from a classic left border to underline, highlight, card, or plain. Switching a theme restyles pages you have already translated, immediately. **Translation-only** mode hides the original and shows only the translation, and you can switch back at any time.
+Choose how the translation looks in **Options → Bilingual display**: 12 themes, from a classic left border to underline, highlight, card, or plain — all twelve are listed and described in the **Twelve bilingual themes** section above. Switching a theme restyles pages you have already translated, immediately. **Translation-only** mode hides the original and shows only the translation, and you can switch back at any time; the original paragraphs are only hidden, never removed from the page, so nothing a site's own scripts depend on gets broken.
 
-在 **選項 → 雙語顯示** 選擇譯文的長相：12 種主題，從經典左側邊線到底線、螢光、卡片、無樣式都有。換主題會立刻替已經翻好的頁面換裝。**僅譯文** 模式會隱藏原文只顯示譯文，隨時可以切回來。
+在 **選項 → 雙語顯示** 選擇譯文的長相：12 種主題，從經典左側邊線到底線、螢光、卡片、無樣式都有——十二種在上面的**十二種雙語主題**那一節有逐一列名與說明。換主題會立刻替已經翻好的頁面換裝。**僅譯文** 模式會隱藏原文只顯示譯文，隨時可以切回來；原文段落只是被隱藏，節點不會從頁面上拆掉，所以網站自己的腳本依賴的東西不會被弄壞。
 
 If you would rather not open the popup every time, turn on the floating ball. It sits at the edge of the page, snaps back when you drag it, translates the page when clicked, and its menu offers translate, restore, translation-only／bilingual, and hide.
 
@@ -276,17 +473,17 @@ Type in a supported text field and press Space three times. ImmerseFree replaces
 
 ### Translate video subtitles｜翻譯影片字幕
 
-On YouTube, open the ImmerseFree popup and turn on **AI subtitles**, or press `Alt + Shift + A`. ImmerseFree enables the video's captions by itself, merges the player's timing-cut cues back into whole sentences, and draws its own translated line under the original. Merging matters: a player splits captions for reading rhythm, not for meaning, so translating raw cues one by one gives the model half-sentences to work with.
+On YouTube, open the ImmerseFree popup and turn on **AI subtitles**, or press `Alt + Shift + A`. ImmerseFree enables the video's captions by itself and draws its own translated line under the original. What happens between those two steps is the interesting part — see the **AI subtitles** section above.
 
-在 YouTube 上打開 ImmerseFree 彈出視窗，開啟 **AI 字幕**，或按 `Alt + Shift + A`。ImmerseFree 會自動把影片字幕打開，把播放器依顯示節奏切開的字幕片段合併回完整句子，再在原文下方畫出自己的譯文行。合併這件事很重要：播放器切字幕是為了閱讀節奏，不是照語意切，所以直接逐片段送翻，模型拿到的是半句話。
+在 YouTube 上打開 ImmerseFree 彈出視窗，開啟 **AI 字幕**，或按 `Alt + Shift + A`。ImmerseFree 會自動把影片字幕打開，並在原文下方畫出自己的譯文行。這兩步之間發生的事才是重點——見上面的 **AI 字幕** 那一節。
 
-On Netflix and Disney+, turn on **Dual subtitles**, or press `Alt + Shift + D`. These services already carry several subtitle tracks, so ImmerseFree simply displays a second one next to the first. No model is called, so this costs nothing and uses no quota.
+On Netflix and Disney+, turn on **Dual subtitles**, or press `Alt + Shift + D`. These services already carry several subtitle tracks, so ImmerseFree fetches the one you did not pick and shows it under the one you did — no model, no quota, no waiting, and the second line is the distributor's own translation. The **Netflix and Disney+** section above explains how it finds that track.
 
-在 Netflix 與 Disney+ 上，開啟 **雙軌字幕**，或按 `Alt + Shift + D`。這兩個平台本來就附了多條字幕軌，ImmerseFree 只是把第二條顯示出來。完全不呼叫模型，所以不花錢也不吃額度。
+在 Netflix 與 Disney+ 上，開啟 **雙軌字幕**，或按 `Alt + Shift + D`。這兩個平台本來就附了多條字幕軌，ImmerseFree 會把你沒選到的那條抓下來，疊在你選的那條底下——不用模型、不吃額度、不用等，而且第二行是片商自己的翻譯。上面的 **Netflix 與 Disney+** 那一節有說明它是怎麼找到那條軌的。
 
-To keep a proper noun consistent for a whole season, open the popup's glossary and pin its translation. To take the subtitles with you, use **Export SRT** and choose translation only, original only, or bilingual.
+To keep a proper noun consistent for a whole season, open the popup's glossary and pin its translation. To take the subtitles with you, use **Export SRT** and choose translation only, original only, or bilingual — a file on your disk, at no charge, which is the one subtitle feature Immersive Translate reserves for its paid tiers.
 
-想讓某個專有名詞在整季裡譯法一致，就到彈出視窗的術語表把它的譯法釘起來。想把字幕帶走，用 **匯出 SRT**，可選只要譯文、只要原文，或雙語。
+想讓某個專有名詞在整季裡譯法一致，就到彈出視窗的術語表把它的譯法釘起來。想把字幕帶走，用 **匯出 SRT**，可選只要譯文、只要原文，或雙語——存成檔案放進你自己的硬碟，不用錢；而字幕檔下載正是沈浸式翻譯留給付費方案的那一項。
 
 **Episode study** turns the current episode's subtitles into vocabulary and sentence-pattern notes. Enter a TOEIC, IELTS, or GEPT score — or say you are a complete beginner — and ImmerseFree maps it onto the six CEFR levels (A1 to C2, the standard European language-ability scale, where A1 is beginner and C2 is near-native) and writes the notes at that level.
 
@@ -312,6 +509,10 @@ The reader has a translation-only toggle, and you can save the result as a bilin
 
 閱讀器有「只看譯文」的切換，結果也可以輸出成雙語 PDF 或 Word 的 `.docx`。
 
+Scanned pages are worth calling out. Reading a scanned PDF means OCR, and OCR is where translation products usually start charging: Immersive Translate puts scanned documents in "PDF Pro", available on Pro and Max at 1,000 pages a month, with the free tier limited to standard non-scanned files. ImmerseFree runs OCR through the recognition engine already built into your operating system — `Windows.Media.Ocr` or Apple's Vision framework — so it is free, it has no page cap, and the pages never leave your computer to be recognised. What ImmerseFree does not do is preserve the original layout the way their BabelDOC route does; the bilingual PDF it writes is a rebuilt document.
+
+掃描頁這件事值得單獨講。要讀掃描 PDF 就得做 OCR，而 OCR 通常正是翻譯產品開始收費的地方：沈浸式翻譯把掃描文件放在「PDF Pro」，Pro 與 Max 每月 1,000 頁，免費版只能處理非掃描的一般檔案。ImmerseFree 直接用你作業系統本來就內建的辨識引擎——`Windows.Media.Ocr` 或 Apple 的 Vision framework——所以不用錢、沒有頁數上限，而且那些頁面不會離開你的電腦去給別人辨識。ImmerseFree 做不到的是像他們的 BabelDOC 那樣保留原始排版；這裡輸出的雙語 PDF 是重新排出來的文件。
+
 For local `file://` PDFs in Chrome or Edge, open the extension details page and enable **Allow access to file URLs** if the browser asks for it.
 
 若要在 Chrome 或 Edge 翻譯本機 `file://` PDF，請打開擴充功能詳細資料頁；如果瀏覽器要求，請啟用 **允許存取檔案網址**。
@@ -326,6 +527,10 @@ Only the terms that actually occur in a sentence are sent to the model, and the 
 
 只有真的出現在句子裡的術語才會送給模型，翻譯快取也剛好以那些術語為鍵。所以改掉一個術語的譯法，只會讓受影響的句子重翻，其他句子照樣沿用快取。
 
+The glossary works on every engine ImmerseFree supports, including the free ones. Immersive Translate's AI glossary does not apply in its own free built-in AI translation mode, which also does not take a custom prompt — so the two settings that most change how a translation reads are the two you cannot use there without paying. Here they are both in Options, on by default, at no cost.
+
+術語表在 ImmerseFree 支援的每一種引擎上都有效，包括免費的那些。沈浸式翻譯的 AI 術語庫在它自己免費版內建的「免費 AI 翻譯模式」下不適用，那個模式同時也不吃自訂提示詞——換句話說，最能左右譯文讀起來如何的兩個設定，在那邊不付錢就碰不到。在這裡它們都在選項頁裡，預設就開著，不用錢。
+
 ### Tune a specific website｜針對特定網站調整
 
 Some sites wrap their text in markup that a generic translator handles badly — a comment counter treated as a paragraph, a code block translated as prose. ImmerseFree ships 25 built-in site rules for common sites. In **Options → My rules** you can write your own as JSON: append `.add` to a field name to layer your entry on top of the built-in rule, `.remove` to drop specific built-in entries, or use the bare field name to replace the whole set.
@@ -338,9 +543,26 @@ Automatic failover is on by default. When an engine fails — quota exhausted, l
 
 失敗自動轉移預設是開啟的。引擎掛掉時——額度用完、本機服務沒開、逾時、CLI 連不上——就換成你排定的下一個。轉移只發生在批與批之間，同一句話不會被兩個引擎各翻一半，一次翻譯最多額外嘗試兩個引擎就停。工具列會顯示是誰接手；ImmerseFree 不會偷偷換引擎。
 
-**Options → Diagnostics** shows the success rate per engine, a recent event log with error codes, and nine counters, which is the fastest way to tell a quota problem from a network one.
+**Options → Diagnostics** shows the success rate per engine, a recent event log with error codes, and nine counters, which is the fastest way to tell a quota problem from a network one. Two of those counters are worth watching on video: `subtitleCues` counts the raw fragments the player produced, and `subtitleGroups` counts the whole sentences actually sent for translation. The gap between them is the merging from step 1 doing its job.
 
-**選項 → 診斷** 會顯示每個引擎的成功率、帶錯誤碼的近期事件紀錄，以及九個計數器；要分辨這是額度問題還是網路問題，看這裡最快。
+**選項 → 診斷** 會顯示每個引擎的成功率、帶錯誤碼的近期事件紀錄，以及九個計數器；要分辨這是額度問題還是網路問題，看這裡最快。看影片時有兩個計數器特別值得注意：`subtitleCues` 是播放器產出的原始碎片數，`subtitleGroups` 是真正送去翻譯的完整句數。兩者的差距，就是第一步的合併在做事的證據。
+
+### Keyboard shortcuts｜快捷鍵
+
+Four commands, all remappable at `chrome://extensions/shortcuts` or `edge://extensions/shortcuts` if they collide with something you already use.
+
+四個指令，如果跟你已經在用的鍵衝突，都可以在 `chrome://extensions/shortcuts` 或 `edge://extensions/shortcuts` 改掉。
+
+| Action | Windows | macOS | 動作 |
+|---|---|---|---|
+| Translate the current page | `Alt + Shift + B` | `Control + Shift + B` | 翻譯目前網頁 |
+| Translate the selection | `Alt + Shift + T` | `Control + Shift + T` | 翻譯選取文字 |
+| Toggle AI subtitles | `Alt + Shift + A` | `Option + Shift + A` | 開關 AI 字幕 |
+| Toggle dual subtitles | `Alt + Shift + D` | `Option + Shift + D` | 開關雙軌字幕 |
+
+The first two declare an explicit macOS binding in the manifest; the two subtitle shortcuts declare only a default, which the browser maps to Option on macOS.
+
+前兩個在 manifest 裡有明確指定 macOS 的按鍵；兩個字幕快捷鍵只宣告了預設值，瀏覽器在 macOS 上會把它對應到 Option 鍵。
 
 ## Manual browser installation｜手動安裝瀏覽器擴充功能
 
@@ -510,6 +732,10 @@ API keys entered in the extension are stored locally but are not encrypted. Sett
 On the old computer, open ImmerseFree **Options** and click **Export settings**. Move the JSON file securely. On the new computer, install ImmerseFree, open **Options**, and click **Import settings**. Verify the engine, model, and permissions, then delete the JSON file because it contains API keys in plaintext.
 
 在舊電腦打開 ImmerseFree **選項**，按 **匯出設定**，再用安全方式移動 JSON 檔。在新電腦安裝 ImmerseFree，打開 **選項**並按 **匯入設定**。確認引擎、模型與權限後，請刪除 JSON 檔，因為檔案會以明文包含 API key。
+
+This is a file you carry, not a cloud sync — moving settings is a deliberate act, and there is no copy of your configuration sitting on anyone's server. Immersive Translate does offer real cross-device sync, which is genuinely more convenient, and reserves it for Pro and Max.
+
+這是你自己搬的一個檔案，不是雲端同步——搬設定是一個你主動做的動作，也不會有一份你的設定放在誰的伺服器上。沈浸式翻譯確實有真正的跨裝置同步，那確實比較方便，而它是 Pro 與 Max 才有的功能。
 
 ## Uninstall｜解除安裝
 
