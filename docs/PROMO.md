@@ -14,7 +14,6 @@ ImmerseFree 把翻譯放回你正在讀的地方，也把影片裡的字幕變�
 **先下載，用在今天原本想跳過的那篇文章上。**
 
 - 下載與原始碼：https://github.com/chang416/ImmerseFree
-- 觀看宣傳片：https://github.com/chang416/ImmerseFree/releases/download/v0.8.1/ImmerseFree-Promo.mp4
 - 喜歡就點顆 Star，讓更多人找到它。
 - 願意支持持續開發，可以請開發者喝杯咖啡：https://buymeacoffee.com/chang416
 
