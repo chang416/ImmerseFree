@@ -23,3 +23,6 @@ The [GitHub Actions run for 5bc2367](https://github.com/chang416/ImmerseFree/act
 
 A recording rehearsal exposed a built-in glossary error: “language acquisition” was forced into a financial translation. The fix preserves preset origin through prompts and keeps custom terms fixed. The updated local suite passes 36 tests. Live Chrome verification of this follow-up fix is pending extension reload; earlier CI and playback evidence above applies to the earlier code revision.
 錄影彩排發現預設詞庫把「language acquisition」強制套為金融用語。修正後保留預設詞來源並改為語境建議，自訂詞仍固定。更新後本機 36 項測試通過。此次追加修正尚待擴充功能重載後實測；上方網站與自動建置證據對應較早版本。
+
+Follow-up verification: after manual extension reload, Luna used the real Chrome popup and observed the first paragraph translated as「語言習得」rather than「語言併購」. The page counter reached 59 / 59. This verifies that visible wording only; it is not a complete translation-accuracy audit. [CI for c8334f6](https://github.com/chang416/ImmerseFree/actions/runs/34179609199) also passed.
+追加驗證：使用者重載後，Luna 透過真實 Chrome 面板翻譯，第一段顯示「語言習得」，不再是「語言併購」；完成計數達 59 / 59。此證據只涵蓋可見詞義，不代表全文翻譯品質已全面驗證。上述追加修正的雲端檢查亦通過。

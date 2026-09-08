@@ -16,6 +16,10 @@ Read the web, watch with context, and turn captions into study notes. ImmerseFre
 > **功能完整開放，不分付費等級。** ImmerseFree 本身不收訂閱費。翻譯使用你選擇的模型服務，其額度、費用與可用性由該服務決定。
 > All features are open. There is no ImmerseFree subscription; your chosen model provider's quotas and charges still apply.
 
+[![觀看 ImmerseFree 完整版宣傳片](docs/assets/promo-cover.jpg)](https://github.com/chang416/ImmerseFree/releases/download/v0.8.1/ImmerseFree-Promo.mp4)
+
+**[觀看 60 秒宣傳片](https://github.com/chang416/ImmerseFree/releases/download/v0.8.1/ImmerseFree-Promo.mp4)** · 配樂與文字版，無旁白。操作素材沿用前版宣傳片；新版功能與限制以本頁說明為準。
+
 ## 從看懂，到用得上
 
 | 你正在做的事 | ImmerseFree 幫你多走一步 |
