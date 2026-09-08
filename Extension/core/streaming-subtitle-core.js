@@ -219,13 +219,22 @@
     return line;
   }
 
-  // Netflix／Disney+ 疊在播放器上的中文行「一行到底、不換行」（使用者明確要求：
-  // 這種貼片式字幕切成兩行會擋畫面也不像正規串流字幕）。放不下時交給
-  // positionLine 既有的縮字級機制，內容不截斷。YouTube 的 AI 字幕換行
-  // 在 youtube-subtitle-core，另一套規則，不受此處影響。
+  // Netflix／Disney+ 的譯文要和原生字幕使用同一套語意換行規則：先在標點後
+  // 斷行，最多兩行，再由 positionLine 依實際高度定位。這避免長句被 CSS 強行
+  // 壓成一行，或在播放器邊界自動切出行首標點。
   function writeStreamingLines(document, line, translation) {
-    line.textContent = cleanText(translation);
-    return 1;
+    const text = cleanText(translation);
+    if (!linebreak?.renderLines) {
+      line.textContent = text;
+      return 1;
+    }
+    const computed = document.defaultView?.getComputedStyle?.(line);
+    const fontSize = Number.parseFloat(computed?.fontSize) || 24;
+    const maxWidth = measureMaxLineWidth(document);
+    const maxCharsPerLine = linebreak.resolveCharsPerLine?.(maxWidth, fontSize) ?? 16;
+    const lines = linebreak.renderLines(line, text, { maxCharsPerLine, maxLines: 2 });
+    for (const child of line.children ?? []) child.style?.setProperty?.("display", "block", "important");
+    return Math.max(1, lines.length);
   }
 
   function measureMaxLineWidth(document) {

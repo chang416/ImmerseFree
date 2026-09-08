@@ -19,6 +19,13 @@
   // 0.7.0 這個數字在本檔寫死兩次（串流預取與 YouTube 預取），加上網頁層與
   // 背景頁共四處，改一處忘三處不會有任何錯誤訊息。
   const SUBTITLE_BATCH = global.ImmerseFreeBatchCore.batchProfile("subtitle");
+  const YOUTUBE_FETCH_TIMEOUT_MS = 8_000;
+  const YOUTUBE_CAPTURE_TIMEOUT_MS = 4_000;
+  const YOUTUBE_PAGE_TIMEOUT_MS = 8_000;
+  const YOUTUBE_ANDROID_TIMEOUT_MS = 12_000;
+  const YOUTUBE_ACQUISITION_DEADLINE_MS = 65_000; // Covers all bounded fallback routes, at most 60 seconds total.
+  const YOUTUBE_TRANSLATION_TIMEOUT_MS = 430_000; // Matches the existing provider bridge request lifetime.
+  const YOUTUBE_PREFETCH_MAX_ATTEMPTS = 3;
   // 翻譯紀錄的權威來源。background 那份以字幕文字為 key 的記憶體快取留著
   // 當行程內去重，但「這句翻過沒有」一律問這裡——它認的是 cueId，
   // 不會讓兩支影片的同一句台詞互相覆蓋，SW 睡醒也還在。
@@ -56,8 +63,14 @@
   let youtubeGroupMembers = [];
   let youtubePrefetchState = "idle";
   let youtubePrefetchRetryAt = 0;
+  let youtubePrefetchAttempts = 0;
+  let youtubePrefetchFailure = "";
+  let youtubeAcquisitionFailure = "";
+  let youtubeTranslationInFlight = false;
   let youtubeProviderCooldown;
   let youtubeResumeAfterBuffer = false;
+  let youtubePausedVideo = null;
+  let youtubePausedVideoKey = "";
   let youtubeSession = 0;
   let youtubePageBridgeReady;
   const youtubeLiveCache = new Map();
@@ -122,7 +135,13 @@
       this.start(nextSettings);
       return true;
     },
-    get enabled() { return enabled; }
+    get enabled() { return enabled; },
+    async collectStudyPairs(nextSettings = {}) {
+      return collectYouTubeStudyPairs(nextSettings);
+    },
+    getState() {
+      return getSubtitleState();
+    }
   };
 
   async function tick() {
@@ -626,92 +645,206 @@
     youtube?.upsertPlayerSubtitle(document, sourceText, translationText, state);
   }
 
-  async function fetchYouTubeCues(track, videoId, pageSource = "") {
+  function withDeadline(task, timeoutMs, label) {
+    if (retry?.withTimeout) return retry.withTimeout(task, timeoutMs, label);
+    let timer;
+    const limit = Math.max(1, Number(timeoutMs) || 45_000);
+    const operation = typeof task === "function" ? Promise.resolve().then(task) : Promise.resolve(task);
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`${label}逾時（${Math.ceil(limit / 1000)} 秒）`)), limit);
+    });
+    return Promise.race([operation, timeout]).finally(() => clearTimeout(timer));
+  }
+
+  function timeoutError(label, timeoutMs) {
+    const error = new Error(`${label}逾時（${Math.ceil(timeoutMs / 1000)} 秒）`);
+    error.code = "TIMEOUT";
+    return error;
+  }
+
+  async function fetchResponseWithDeadline(input, init, timeoutMs, label) {
+    const controller = typeof AbortController === "function" ? new AbortController() : undefined;
+    const requestInit = controller ? { ...init, signal: controller.signal } : { ...init };
+    const limit = Math.max(1, Number(timeoutMs) || YOUTUBE_FETCH_TIMEOUT_MS);
+    let timer;
     try {
-      const response = await fetch(youtube.buildTimedTextUrl(track.baseUrl), { credentials: "same-origin" });
-      if (response.ok) {
-        const text = await response.text();
-        const cues = youtube.parseJson3TranscriptText(text);
+      return await new Promise((resolve, reject) => {
+        timer = setTimeout(() => {
+          controller?.abort();
+          reject(timeoutError(label, limit));
+        }, limit);
+        Promise.resolve()
+          .then(() => fetch(input, requestInit))
+          .then(async (response) => ({ response, text: await response.text() }))
+          .then(resolve, reject);
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function trackMatchesYouTubeUrl(track, url, videoId) {
+    try {
+      const parsed = new URL(url, location.href);
+      if (!/\/api\/timedtext/.test(parsed.pathname)) return false;
+      if (videoId && parsed.searchParams.get("v") !== videoId) return false;
+      const original = new URL(track.baseUrl, location.href);
+      if ((parsed.searchParams.get("tlang") || "") !== (original.searchParams.get("tlang") || "")) return false;
+      if ((parsed.searchParams.get("kind") || "") !== (original.searchParams.get("kind") || "")) return false;
+      if (parsed.searchParams.has("begin") || parsed.searchParams.has("end")) return false;
+      const requested = String(track?.languageCode ?? "").replace(/_/g, "-").toLowerCase();
+      const actual = String(parsed.searchParams.get("lang") ?? "").replace(/_/g, "-").toLowerCase();
+      if (requested && actual && requested !== actual && requested.split("-")[0] !== actual.split("-")[0]) return false;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function hasUsableYouTubeCues(cues) {
+    // A whole timedtext response may legitimately contain only one short cue.
+    // Duration coverage cannot establish completeness; validate the track data.
+    return Array.isArray(cues) && cues.length > 0 && cues.every((cue) =>
+      String(cue.text ?? "").trim() && Number.isFinite(cue.startMs) &&
+      Number.isFinite(cue.endMs) && cue.endMs > cue.startMs);
+  }
+
+  function parseYouTubeTranscript(text) {
+    const json = youtube.parseJson3TranscriptText(text);
+    if (json.length) return json;
+    const xml = youtube.parseTranscriptXml(text);
+    if (xml.length) return xml;
+    if (/^\s*WEBVTT/.test(text)) return (global.ImmerseFreeSubtitleFormat?.parseWebVtt(text) ?? [])
+      .map((cue) => ({ startMs: cue.start * 1000, endMs: cue.end * 1000, text: cue.text }));
+    // YouTube srv3 XML uses milliseconds and nested word spans.
+    try {
+      const doc = new DOMParser().parseFromString(text, "application/xml");
+      return [...doc.querySelectorAll("p[t][d]")].map((node) => ({
+        startMs: Number(node.getAttribute("t")),
+        endMs: Number(node.getAttribute("t")) + Number(node.getAttribute("d")),
+        text: node.textContent.trim()
+      })).filter((cue) => cue.text && cue.endMs > cue.startMs);
+    } catch { return []; }
+  }
+
+  async function fetchYouTubeCues(track, videoId, pageSource = "", durationSeconds = 0) {
+    const failures = [];
+    const accept = (candidate, route) => {
+      if (hasUsableYouTubeCues(candidate, durationSeconds)) {
+        youtubeAcquisitionFailure = "";
+        return candidate;
+      }
+      failures.push(`${route}沒有完整內容`);
+      return [];
+    };
+
+    try {
+      const fetched = await fetchResponseWithDeadline(
+        youtube.buildTimedTextUrl(track.baseUrl),
+        { credentials: "same-origin" },
+        YOUTUBE_FETCH_TIMEOUT_MS,
+        "YouTube 字幕請求"
+      );
+      if (!fetched.response.ok) failures.push(`直接字幕請求回應 ${fetched.response.status}`);
+      else {
+        const cues = accept(parseYouTubeTranscript(fetched.text), "直接字幕請求");
         if (cues.length) return cues;
       }
-    } catch {
-      // 換路二。
+    } catch (error) {
+      failures.push(error.code === "TIMEOUT" ? "直接字幕請求逾時" : "直接字幕請求失敗");
     }
+
     const ask = bridge.pageChannel?.ask;
-    try {
-      if (!ask) throw new Error("頁面字幕攔截器尚未就緒");
-      const reply = await ask({ type: "IMMERSEFREE_REQUEST_CAPTURED_SUBS" }, 4000);
-      // 新的在後面，倒著找，先用最近攔到的。
-      for (const body of [...(reply?.captured ?? [])].reverse()) {
-        if (!/\/api\/timedtext/.test(body.url)) continue;
-        if (videoId) {
-          try {
-            if (new URL(body.url).searchParams.get("v") !== videoId) continue;
-          } catch {
-            continue;
-          }
-        }
-        const cues = youtube.parseJson3TranscriptText(body.text);
-        if (cues.length) return cues;
-      }
+    if (!ask) failures.push("頁面字幕攔截器尚未就緒");
 
-    } catch {
-      // 攔截得太晚就直接走完整字幕備援。
-    }
-
-    // YouTube 目前會讓網頁版 caption URL 帶 exp=xpe，沒有 PO Token 時回傳
-    // 200 空內容。官方 Android 播放器回應仍會提供同一條完整字幕軌，而且
-    // 不需要自行偽造 pot。這條路等同重新向播放器取得 captionTracks，不是
-    // OCR，也不是逐句讀畫面。
-    const androidCues = await fetchAndroidYouTubeCues(videoId, pageSource);
-    if (androidCues.length) return androidCues;
-
-    try {
-      if (!ask) return [];
-      // 如果攔截器注入得比較晚，response body hook 可能已經錯過播放器的
-      // timedtext 回應，但 Resource Timing 還留著播放器真正使用過的完整網址。
-      // 那個網址含 pot 權杖；從頁面情境用原始 fetch 重播它，才能拿到整集
-      // JSON3 時間軸。這條路只讀字幕，不會變更影片播放進度。
-      const tracks = await ask({ type: "IMMERSEFREE_REQUEST_STREAM_TRACKS" }, 4000);
-      for (const url of [...(tracks?.subtitles ?? [])].reverse()) {
-        if (!/\/api\/timedtext/.test(url)) continue;
-        if (videoId) {
-          try {
-            if (new URL(url).searchParams.get("v") !== videoId) continue;
-          } catch {
-            continue;
-          }
-        }
-        try {
-          const fetched = await ask({
-            type: "IMMERSEFREE_PAGE_FETCH",
-            url: youtube.buildTimedTextUrl(url)
-          }, 12000);
-          if (!fetched?.ok) continue;
-          const cues = youtube.parseJson3TranscriptText(fetched.text);
+    if (ask) {
+      try {
+        const reply = await withDeadline(
+          () => ask({ type: "IMMERSEFREE_REQUEST_CAPTURED_SUBS" }, YOUTUBE_CAPTURE_TIMEOUT_MS),
+          YOUTUBE_CAPTURE_TIMEOUT_MS,
+          "YouTube 攔截字幕查詢"
+        );
+        // 新的在後面，倒著找，先用最近攔到的同語言整軌。
+        for (const body of [...(reply?.captured ?? [])].reverse()) {
+          if (!trackMatchesYouTubeUrl(track, body?.url, videoId)) continue;
+          const cues = accept(parseYouTubeTranscript(body.text), "攔截字幕");
           if (cues.length) return cues;
-        } catch {
-          // 權杖可能剛好過期，繼續試較舊的候選或交回即時翻譯。
         }
+        failures.push("攔截字幕沒有完整內容");
+      } catch (error) {
+        failures.push(error.code === "TIMEOUT" ? "攔截字幕查詢逾時" : "攔截字幕查詢失敗");
       }
-    } catch {
-      // 三條路都沒有，回空陣列讓呼叫端改用即時翻譯。
+
+      try {
+        // Resource Timing 只保留網址，但網址含播放器剛拿到的短效權杖；
+        // 這條重播路徑必須在 Android 失敗時仍能獨立執行。
+        const tracks = await withDeadline(
+          () => ask({ type: "IMMERSEFREE_REQUEST_STREAM_TRACKS" }, YOUTUBE_CAPTURE_TIMEOUT_MS),
+          YOUTUBE_CAPTURE_TIMEOUT_MS,
+          "YouTube 字幕網址查詢"
+        );
+        const candidates = [...(tracks?.subtitles ?? [])]
+          .reverse()
+          .filter((url) => trackMatchesYouTubeUrl(track, url, videoId))
+          .slice(0, 4);
+        for (const url of candidates) {
+          try {
+            const fetched = await withDeadline(
+              () => ask({
+                type: "IMMERSEFREE_PAGE_FETCH",
+                url: youtube.buildTimedTextUrl(url)
+              }, YOUTUBE_PAGE_TIMEOUT_MS),
+              YOUTUBE_PAGE_TIMEOUT_MS,
+              "YouTube 字幕重播"
+            );
+            if (!fetched?.ok) continue;
+            const cues = accept(parseYouTubeTranscript(fetched.text), "字幕重播");
+            if (cues.length) return cues;
+          } catch {
+            // 權杖可能剛好過期，繼續試有限數量的較舊候選。
+          }
+        }
+        failures.push("字幕網址重播沒有完整內容");
+      } catch (error) {
+        failures.push(error.code === "TIMEOUT" ? "字幕網址查詢逾時" : "字幕網址查詢失敗");
+      }
     }
+
+    // YouTube 網頁 timedtext 回 200 空內容時，才走 Android 播放器；即使它
+    // 拒絕或逾時，也不能截斷前面的 Resource Timing 重播路徑。
+    try {
+      const androidCues = await withDeadline(
+        () => fetchAndroidYouTubeCues(videoId, pageSource, track?.languageCode, durationSeconds),
+        YOUTUBE_ANDROID_TIMEOUT_MS,
+        "YouTube Android 字幕備援"
+      );
+      const cues = accept(androidCues, "Android 字幕備援");
+      if (cues.length) return cues;
+    } catch (error) {
+      failures.push(error.code === "TIMEOUT" ? "Android 字幕備援逾時" : "Android 字幕備援失敗");
+    }
+
+    youtubeAcquisitionFailure = [...new Set(failures)].slice(0, 3).join("；") || "沒有可用字幕取得路徑";
     return [];
   }
 
-  async function fetchAndroidYouTubeCues(videoId, pageSource = "") {
+  async function fetchAndroidYouTubeCues(videoId, pageSource = "", sourceLanguage = settings.sourceLanguage, durationSeconds = 0) {
     if (!videoId) return [];
-    let source = pageSource || [...document.scripts].map((script) => script.textContent ?? "").join("\n");
+    let source = pageSource || [...(document.scripts ?? [])].map((script) => script.textContent ?? "").join("\n");
     let apiKey = youtube?.extractInnertubeApiKey(source);
     if (!apiKey) {
-      const response = await fetch(location.href, { credentials: "same-origin" });
-      if (!response.ok) return [];
-      source = await response.text();
+      const fetched = await fetchResponseWithDeadline(
+        location.href,
+        { credentials: "same-origin" },
+        YOUTUBE_PAGE_TIMEOUT_MS,
+        "YouTube 頁面請求"
+      );
+      if (!fetched.response.ok) return [];
+      source = fetched.text;
       apiKey = youtube?.extractInnertubeApiKey(source);
     }
     if (!apiKey) return [];
-    const playerResponse = await fetch(
+    const player = await fetchResponseWithDeadline(
       `https://www.youtube.com/youtubei/v1/player?key=${encodeURIComponent(apiKey)}&prettyPrint=false`,
       {
         method: "POST",
@@ -721,16 +854,28 @@
           context: { client: { clientName: "ANDROID", clientVersion: "20.10.38" } },
           videoId
         })
-      }
+      },
+      YOUTUBE_ANDROID_TIMEOUT_MS,
+      "YouTube Android 播放器請求"
     );
-    if (!playerResponse.ok) return [];
-    const track = youtube?.extractCaptionTrack(await playerResponse.json(), settings.sourceLanguage);
+    if (!player.response.ok) return [];
+    let payload;
+    try { payload = JSON.parse(player.text); }
+    catch { return []; }
+    const track = youtube?.extractCaptionTrack(payload, sourceLanguage);
     if (!track?.baseUrl) return [];
     const transcriptUrl = new URL(track.baseUrl);
+    if (!/^https?:$/.test(transcriptUrl.protocol) || !/(^|\.)youtube\.com$/i.test(transcriptUrl.hostname) || transcriptUrl.pathname !== "/api/timedtext") return [];
     transcriptUrl.searchParams.delete("fmt");
-    const transcriptResponse = await fetch(transcriptUrl.href, { credentials: "omit" });
-    if (!transcriptResponse.ok) return [];
-    return youtube?.parseTranscriptXml(await transcriptResponse.text()) ?? [];
+    const transcript = await fetchResponseWithDeadline(
+      transcriptUrl.href,
+      { credentials: "omit" },
+      YOUTUBE_ANDROID_TIMEOUT_MS,
+      "YouTube Android 字幕檔請求"
+    );
+    if (!transcript.response.ok) return [];
+    const cues = youtube?.parseTranscriptXml(transcript.text) ?? [];
+    return hasUsableYouTubeCues(cues, durationSeconds) ? cues : [];
   }
 
   async function tickYouTube() {
@@ -765,7 +910,7 @@
       if (emptyTicks === 12) ensureYouTubeCaptionsOn();
       // 預翻失敗後的重試不能只綁在「畫面上有字幕」的分支——字幕資料
       // （timedtext）常常比畫面渲染先到，或者根本只有資料沒有畫面。
-      if (youtubePrefetchState === "failed" && Date.now() >= youtubePrefetchRetryAt) {
+      if (youtubePrefetchState === "failed" && youtubePrefetchAttempts < YOUTUBE_PREFETCH_MAX_ATTEMPTS && Date.now() >= youtubePrefetchRetryAt) {
         youtubePrefetchRetryAt = Date.now() + 15000;
         beginYouTubePrefetch();
       }
@@ -775,7 +920,7 @@
     // 預翻先前失敗，多半是當時 CC 還沒開、播放器還沒去抓 timedtext。
     // 現在畫面上有字幕了，代表播放器已經抓過、攔截器手上可能有貨——
     // 重試一次（20 秒內不重複），成功就不用再逐句燒額度。
-    if (youtubePrefetchState === "failed" && Date.now() >= youtubePrefetchRetryAt) {
+    if (youtubePrefetchState === "failed" && youtubePrefetchAttempts < YOUTUBE_PREFETCH_MAX_ATTEMPTS && Date.now() >= youtubePrefetchRetryAt) {
       youtubePrefetchRetryAt = Date.now() + 20000;
       beginYouTubePrefetch();
     }
@@ -799,35 +944,52 @@
     if (youtubePrefetchState === "idle") beginYouTubePrefetch();
     renderYouTubeLine(
       sourceCue,
-      youtubePrefetchState === "failed" ? "正在重新取得完整中文字幕…" : "正在準備前 30 秒中文字幕…",
+      youtubePrefetchState === "failed" ? youtubeFailureMessage() : "正在準備前 30 秒中文字幕…",
       youtubePrefetchState === "failed" ? "error" : "pending"
     );
   }
 
   async function beginYouTubePrefetch() {
     if (!isYouTube() || !currentYouTubeVideoKey() || youtubePrefetchState === "loading") return;
+    if (youtubePrefetchAttempts >= YOUTUBE_PREFETCH_MAX_ATTEMPTS) {
+      youtubePrefetchState = "failed";
+      youtubePrefetchRetryAt = Infinity;
+      youtubePrefetchFailure = "完整字幕取得已達重試上限，請重新整理 YouTube 分頁後再試";
+      resumeYouTubeAfterBuffer();
+      return;
+    }
     ensureYouTubeCaptionsOn();
+    youtubePrefetchAttempts += 1;
     youtubePrefetchState = "loading";
-    pauseYouTubeForBuffer();
+    youtubePrefetchFailure = "";
+    youtubeAcquisitionFailure = "";
     const session = ++youtubeSession;
     let translating = false;
     try {
       if (!youtubeCues.length) {
-        let pageSource = [...document.scripts].map((script) => script.textContent ?? "").join("\n");
-        let track = youtube?.extractCaptionTrack(pageSource, settings.sourceLanguage);
-        if (!track) track = await requestPageWorldCaptionTrack();
-        if (!track) {
-          const response = await fetch(location.href, { credentials: "same-origin" });
-          if (!response.ok) throw new Error(`YouTube 頁面回應 ${response.status}`);
-          pageSource = await response.text();
-          track = youtube?.extractCaptionTrack(pageSource, settings.sourceLanguage);
-        }
+        const trackInfo = await withDeadline(
+          () => resolveYouTubeCaptionTracks(),
+          YOUTUBE_ACQUISITION_DEADLINE_MS,
+          "YouTube 字幕軌查詢"
+        );
+        const pageSource = trackInfo.pageSource;
+        const track = youtube?.pickCaptionTrack?.(trackInfo.tracks, settings.sourceLanguage, { fallback: true })
+          ?? youtube?.extractCaptionTrack({ captions: { playerCaptionsTracklistRenderer: { captionTracks: trackInfo.tracks } } }, settings.sourceLanguage);
         if (!track?.baseUrl) throw new Error("找不到 YouTube 字幕時間軸");
-        const cues = await fetchYouTubeCues(track, currentYouTubeVideoKey(), pageSource);
-        if (!cues.length) throw new Error("無法取得完整 YouTube 字幕時間軸");
+        const videoDuration = Number(document.querySelector("video")?.duration) || 0;
+        const cues = await withDeadline(
+          () => fetchYouTubeCues(track, currentYouTubeVideoKey(), pageSource, videoDuration),
+          YOUTUBE_ACQUISITION_DEADLINE_MS,
+          "YouTube 完整字幕取得"
+        );
+        if (!cues.length) {
+          const detail = youtubeAcquisitionFailure ? `：${youtubeAcquisitionFailure}` : "";
+          throw new Error(`無法取得完整 YouTube 字幕時間軸${detail}`);
+        }
         if (!enabled || session !== youtubeSession) return;
         youtubeCues = cues;
         youtubeTranslations = Array(cues.length);
+        youtubePrefetchFailure = "";
         // timedtext 給的是整支影片的字幕軌，所以拿到就等於整軌在手，
         // 匯出時可以給完整 SRT。同時把上次翻好的譯文讀回來。
         youtubeCueIds = await primeSubtitleStore(cues, { trackComplete: true });
@@ -854,6 +1016,7 @@
         // 緩衝計畫仍以 cue 為單位（顯示要按 cue 查），但送翻以句為單位，
         // 所以先把 cue 索引換成不重複的語意句索引。
         const pendingBuffer = pendingYouTubeGroups(plan.buffer);
+        if (pendingBuffer.length && youtubePrefetchState === "loading") pauseYouTubeForBuffer();
         if (!pendingBuffer.length && youtubePrefetchState === "loading") {
           youtubePrefetchState = "buffered";
           youtubeProviderCooldown = undefined;
@@ -878,8 +1041,16 @@
         });
         if (!batchGroups.length) continue;
         translating = true;
+        youtubeTranslationInFlight = true;
         const batchTexts = batchGroups.map((groupIndex) => youtubeGroups[groupIndex].text);
-        const translated = await bridge.translate(batchTexts, subtitleContext(batchTexts));
+        const translated = await withDeadline(
+          () => bridge.translate(batchTexts, subtitleContext(batchTexts)),
+          YOUTUBE_TRANSLATION_TIMEOUT_MS,
+          "YouTube 字幕翻譯"
+        );
+        if (!Array.isArray(translated) || translated.length !== batchTexts.length || translated.some((value) => !String(value ?? "").trim())) {
+          throw new Error(`模型回傳 ${Array.isArray(translated) ? translated.length : 0} 段有效翻譯，應為 ${batchTexts.length} 段`);
+        }
         if (!enabled || session !== youtubeSession) return;
         batchGroups.forEach((groupIndex, translatedIndex) => {
           const value = translated[translatedIndex];
@@ -888,13 +1059,24 @@
           history.push({ source: youtubeGroups[groupIndex].text, translation: value });
         });
         translating = false;
+        youtubeTranslationInFlight = false;
         youtubeProviderCooldown = undefined;
+        youtubePrefetchAttempts = 0;
         if (history.length > 12) history.splice(0, history.length - 12);
       }
     } catch (error) {
       if (session !== youtubeSession) return;
       youtubePrefetchState = "failed";
-      if (translating) {
+      youtubeTranslationInFlight = false;
+      youtubePrefetchFailure = String(error?.message ?? "完整字幕預抓失敗");
+      if (youtubePrefetchAttempts >= YOUTUBE_PREFETCH_MAX_ATTEMPTS) {
+        youtubeProviderCooldown = undefined;
+        youtubePrefetchRetryAt = Infinity;
+        youtubePrefetchFailure = translating
+          ? "字幕翻譯逾時或失敗，已停止自動重試，請重新整理後再試"
+          : youtubePrefetchFailure;
+        resumeYouTubeAfterBuffer();
+      } else if (translating) {
         youtubeProviderCooldown = retry?.createRetryEntry(error);
         youtubePrefetchRetryAt = youtubeProviderCooldown?.retryAt ?? Date.now() + 60_000;
       } else {
@@ -934,22 +1116,25 @@
     const video = document.querySelector("video");
     if (!video || video.paused !== false || typeof video.pause !== "function") return;
     youtubeResumeAfterBuffer = true;
+    youtubePausedVideo = video;
+    youtubePausedVideoKey = currentYouTubeVideoKey();
     video.pause();
   }
 
   function resumeYouTubeAfterBuffer() {
     if (!youtubeResumeAfterBuffer) return;
     youtubeResumeAfterBuffer = false;
-    const video = document.querySelector("video");
-    if (!video || typeof video.play !== "function") return;
+    const video = youtubePausedVideo;
+    youtubePausedVideo = null;
+    if (!video || video !== document.querySelector("video") || youtubePausedVideoKey !== currentYouTubeVideoKey() || typeof video.play !== "function") return;
     Promise.resolve(video.play()).catch(() => {
       // 瀏覽器若因自動播放政策擋住，維持暫停，使用者按播放即可。
     });
   }
 
-  async function requestPageWorldCaptionTrack() {
+  async function requestPageWorldCaptionTracks() {
     try {
-      await ensureYouTubePageBridge();
+      await withDeadline(() => ensureYouTubePageBridge(), 2500, "YouTube 頁面字幕橋接");
       const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       const tracks = await new Promise((resolve) => {
         const timeout = setTimeout(() => finish([]), 1400);
@@ -963,14 +1148,83 @@
           resolve(value);
         }
         global.addEventListener("message", onMessage);
-        global.postMessage({ type: "IMMERSEFREE_REQUEST_YOUTUBE_CAPTION_TRACKS", requestId }, global.location.origin);
+        global.postMessage({ type: "IMMERSEFREE_REQUEST_YOUTUBE_CAPTION_TRACKS", requestId, videoId: currentYouTubeVideoKey() }, global.location.origin);
       });
-      return youtube?.extractCaptionTrack({
-        captions: { playerCaptionsTracklistRenderer: { captionTracks: tracks } }
-      }, settings.sourceLanguage);
+      return tracks.filter((track) => track?.baseUrl);
     } catch {
-      return undefined;
+      return [];
     }
+  }
+
+  async function resolveYouTubeCaptionTracks() {
+    let pageSource = [...(document.scripts ?? [])].map((script) => script.textContent ?? "").join("\n");
+    const videoId = currentYouTubeVideoKey();
+    const currentTracks = (tracks) => tracks.filter((track) => {
+      try { return new URL(track.baseUrl).searchParams.get("v") === videoId; } catch { return false; }
+    });
+    let tracks = currentTracks(await requestPageWorldCaptionTracks());
+    if (!tracks.length) tracks = currentTracks(youtube?.extractCaptionTracks?.(pageSource) ?? []);
+    if (!tracks.length) {
+      const fetched = await fetchResponseWithDeadline(
+        location.href,
+        { credentials: "same-origin" },
+        YOUTUBE_PAGE_TIMEOUT_MS,
+        "YouTube 頁面字幕軌請求"
+      );
+      if (!fetched.response.ok) throw new Error(`YouTube 頁面回應 ${fetched.response.status}`);
+      pageSource = fetched.text;
+      tracks = currentTracks(youtube?.extractCaptionTracks?.(pageSource) ?? []);
+    }
+    return { tracks: tracks.filter((track) => track?.baseUrl), pageSource };
+  }
+
+  async function collectYouTubeStudyPairs(nextSettings = {}) {
+    if (!isYouTube()) throw new Error("影集學習目前只支援 YouTube 與串流平台影片");
+    const video = document.querySelector("video");
+    const videoId = currentYouTubeVideoKey();
+    if (!videoId) throw new Error("找不到 YouTube 影片編號");
+    const learnLanguage = nextSettings.studySourceLanguage || "en";
+    const helpLanguage = nextSettings.dualSubtitleLanguage || "zh-Hant";
+    const trackInfo = await withDeadline(
+      () => resolveYouTubeCaptionTracks(),
+      YOUTUBE_ACQUISITION_DEADLINE_MS,
+      "YouTube 學習字幕軌查詢"
+    );
+    const learnTrack = youtube.pickCaptionTrack(trackInfo.tracks, learnLanguage);
+    const helpTrack = youtube.pickCaptionTrack(trackInfo.tracks, helpLanguage, { fallback: false });
+    if (!learnTrack) throw new Error("這支影片沒有可取得的原文字幕");
+    const duration = Number(video?.duration) || 0;
+    const learn = await withDeadline(
+      () => fetchYouTubeCues(learnTrack, videoId, trackInfo.pageSource, duration),
+      YOUTUBE_ACQUISITION_DEADLINE_MS, "YouTube 學習原文取得");
+    if (!learn.length) throw new Error(`無法取得學習原文：${youtubeAcquisitionFailure}`);
+    let help = [];
+    if (helpTrack && helpTrack.baseUrl !== learnTrack.baseUrl) {
+      try {
+        help = await withDeadline(
+          () => fetchYouTubeCues(helpTrack, videoId, trackInfo.pageSource, duration),
+          YOUTUBE_ACQUISITION_DEADLINE_MS, "YouTube 對照字幕取得");
+      } catch { /* Source captions alone are sufficient for study generation. */ }
+    }
+    if (videoId !== currentYouTubeVideoKey()) throw new Error("影片已切換，請重新取得學習字幕");
+    return {
+      pairs: pairYouTubeCues(toStudyCues(learn), toStudyCues(help)),
+      learnLanguage: learnTrack.languageCode || learnLanguage,
+      helpLanguage: help.length ? helpTrack.languageCode : "",
+      duration
+    };
+  }
+
+  function toStudyCues(cues) {
+    return cues.map((cue) => ({
+      start: Math.max(0, Number(cue.startMs) || 0) / 1000,
+      end: Math.max(0, Number(cue.endMs) || 0) / 1000,
+      text: String(cue.text ?? "").trim()
+    })).filter((cue) => cue.text && cue.end > cue.start);
+  }
+
+  function pairYouTubeCues(source, translation) {
+    return format.pairByOverlap(source, translation);
   }
 
   function ensureYouTubePageBridge() {
@@ -1019,6 +1273,7 @@
   }
 
   function resetYouTubeState() {
+    youtubeSession += 1;
     resumeYouTubeAfterBuffer();
     // 換影片前先把這一支的譯文寫出去，再清狀態。
     void subtitleStore?.flush();
@@ -1030,6 +1285,10 @@
     youtubeGroupMembers = [];
     youtubePrefetchState = "idle";
     youtubePrefetchRetryAt = 0;
+    youtubePrefetchAttempts = 0;
+    youtubePrefetchFailure = "";
+    youtubeAcquisitionFailure = "";
+    youtubeTranslationInFlight = false;
     youtubeProviderCooldown = undefined;
     youtubeLiveCache.clear();
     // 換影片＝換術語表、換影片資訊、換極短句清單。
@@ -1057,6 +1316,41 @@
       renderYouTubeLine(sourceText, message, "cooldown");
     }
     return true;
+  }
+
+  function youtubeFailureMessage() {
+    const failure = cleanText(youtubePrefetchFailure).slice(0, 180);
+    if (youtubePrefetchAttempts < YOUTUBE_PREFETCH_MAX_ATTEMPTS && Number.isFinite(youtubePrefetchRetryAt) && youtubePrefetchRetryAt > Date.now()) {
+      return `${failure || "完整字幕取得失敗"}，${Math.ceil((youtubePrefetchRetryAt - Date.now()) / 1000)} 秒後自動重試`;
+    }
+    return failure || "完整字幕取得失敗，請重新整理 YouTube 分頁後再試";
+  }
+
+  function getSubtitleState() {
+    const completed = youtubeTranslations.filter((value) => value !== undefined).length;
+    const translated = youtubeTranslations.filter((value) => typeof value === "string" && value.trim()).length;
+    const retryAt = Number.isFinite(youtubePrefetchRetryAt) ? youtubePrefetchRetryAt : null;
+    return {
+      enabled,
+      site: isYouTube() ? "youtube" : (isStreamingSite() ? "streaming" : "page"),
+      youtube: {
+        state: youtubePrefetchState,
+        prefetchState: youtubePrefetchState,
+        totalCues: youtubeCues.length,
+        completedCues: completed,
+        translatedCues: translated,
+        attempts: youtubePrefetchAttempts,
+        maxAttempts: YOUTUBE_PREFETCH_MAX_ATTEMPTS,
+        translating: youtubeTranslationInFlight,
+        retryAt,
+        failure: youtubePrefetchFailure || null,
+        progress: { completed, total: youtubeCues.length }
+      },
+      streaming: {
+        state: streamingPrefetchState,
+        retryAt: Number.isFinite(streamingPrefetchCooldownUntil) ? streamingPrefetchCooldownUntil : null
+      }
+    };
   }
 
   function isYouTube() {

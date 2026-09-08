@@ -1,8 +1,9 @@
-export function buildPdfTranslationUnits(layers = [], maxChars = 1800) {
-  const limit = Math.max(100, Math.min(1990, Number(maxChars) || 1800));
+export function buildPdfTranslationUnits(layers = [], maxChars = 1200) {
+  const limit = Math.max(100, Math.min(1300, Number(maxChars) || 1200));
   const units = [];
   for (const layer of layers) {
     const sourceText = String(layer?.sourceText ?? "");
+    if (!sourceText.trim()) continue;
     const parts = splitPreservingText(sourceText, limit);
     parts.forEach((part, partIndex) => {
       units.push({

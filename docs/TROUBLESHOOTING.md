@@ -9,6 +9,26 @@ can do yourself; none of them requires rebuilding the project.
 
 ---
 
+## YouTube captions or study remain pending｜YouTube 字幕或學習停住
+
+1. Confirm that the video has an accessible caption track. AI subtitles translate captions; they do not transcribe arbitrary audio.
+2. Keep the target video open. The popup shows acquisition and completed-batch progress; a slow model may take time before the next batch completes.
+3. If the status reports a terminal failure, disable AI subtitles and enable them again to retry. Successfully translated batches can be reused for the same video and settings.
+4. After updating the extension, reload the video page so it receives the new page code. Navigation to another video invalidates the old acquisition session.
+5. For study, open the popup from the video page. An original-language track is sufficient; a second-language track is optional.
+
+1. 先確認影片有可取得的字幕。AI 字幕翻譯的是字幕，不是把任意音訊轉成文字。
+2. 保留目標影片分頁。面板會顯示取得與批次完成進度；慢速模型需要較長等待。
+3. 若已顯示無法繼續的失敗狀態，關閉 AI 字幕再開啟重試。同影片與設定可沿用已完成批次。
+4. 更新擴充功能後，重新整理影片分頁，讓頁面載入新程式。換片時，舊影片的取得工作會失效。
+5. 要生成教材，從影片分頁開啟面板。只取得原文字幕也能學習，第二語言字幕不是必要條件。
+
+## Dual subtitles drift or miss a language｜雙軌不同步或缺少語言
+
+Check that the title offers both requested languages. Original tracks can use different segmentation, and player timing can require calibration. After seeking, allow a new complete caption to appear. If drift persists, report the platform, title, playback time and selected languages. Do not include account credentials.
+
+先確認該片提供兩種指定語言。各語言可能斷句不同，播放器時間也可能需要校正。跳轉後，等待新的一句完整字幕出現；若仍持續偏移，請回報平台、片名、播放時間與所選語言，不要附帳密。
+
 ## Safari: subtitles stay on “Preparing”｜Safari：字幕一直停在「準備中」
 
 **Symptom.** The extension is enabled in Safari, the page translates normally,
@@ -134,16 +154,14 @@ Bridge 正常時會回 `{"ok":true}`。完全沒有回應就代表它沒有在�
    and starts the service immediately.
 2. On Windows you can also start it by hand with `Windows\Start-Bridge.vbs`.
 3. If the health check answers but translation still fails, check that a real CLI
-   is installed: the same `/health` response lists whether `agy` and `opencode`
-   were found and where.
+   is installed: open the extension’s provider status or diagnostics to check whether the CLI can be reached. An unauthenticated `/health` check only returns a minimal liveness response.
 
 **處理方式：**
 
 1. 重新執行安裝程式——`Windows\Install ImmerseFree.cmd` 或
    `macOS/Install ImmerseFree.command`。它會重新設定登入時自動啟動，並立刻把服務叫起來。
 2. Windows 也可以直接執行 `Windows\Start-Bridge.vbs` 手動啟動。
-3. 如果健康檢查有回應但翻譯還是失敗，請確認 CLI 真的裝好了：同一個 `/health` 回應會列出
-   有沒有找到 `agy` 與 `opencode`，以及它們在哪個路徑。
+3. 如果健康檢查有回應但翻譯還是失敗，請確認 CLI 真的裝好了：請從擴充功能的引擎狀態或診斷確認能否連到 CLI。未帶擴充功能識別的 `/health` 只回傳最小存活訊號。
 
 **Port already in use.** If another program already holds port 27843, the Bridge
 refuses to start and says so instead of quietly stealing the port. Find the

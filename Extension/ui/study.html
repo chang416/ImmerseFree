@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>影集學習</title>
+  <title>影片學習</title>
   <link rel="stylesheet" href="study.css">
 </head>
 <body>
   <main class="shell">
     <header>
       <div>
-        <h1>影集學習</h1>
+        <h1>影片學習</h1>
         <p id="episode">讀取字幕中…</p>
       </div>
       <span id="line-count" class="pill"></span>
@@ -47,7 +47,8 @@
       <p id="level-preview" class="preview"></p>
 
       <button id="generate" class="primary" type="button" disabled>生成教材</button>
-      <p id="status" class="status"></p>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <button id="retry-source" class="secondary" type="button" hidden>重新取得字幕</button>
       <div id="progress" class="track" hidden><div id="progress-fill" class="fill"></div></div>
     </section>
 

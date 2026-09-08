@@ -1,5 +1,27 @@
 # Changelog｜版本紀錄
 
+## 0.8.1 — 2026-09-08
+
+### Improved｜改善
+
+- Reworked the silver popup layout, control spacing, press feedback and keyboard focus. Model discovery no longer blocks the main controls.
+- 重新整理銀灰面板、控制項間距、按壓回饋與鍵盤焦點。模型清單載入不再阻塞主要操作。
+- Video study now accepts YouTube captions and can build notes from an original-language track alone. Requests remain tied to the source video when tabs change.
+- 影片學習支援 YouTube，也可只用原文字幕生成教材。切換分頁時，請求仍綁定原始影片。
+- YouTube caption acquisition validates the current video and audio language, handles JSON3/XML/WebVTT sources, and bounds each fallback route. Progress comes from completed subtitle batches.
+- YouTube 取得字幕時檢查目前影片與音軌語言，處理不同字幕格式，並限制各條備援路徑的等待時間。進度依實際完成批次更新。
+- Subtitle retries stop repeated failures without discarding successful batches. Slow model calls receive a deadline consistent with the local bridge.
+- 字幕重試保留成功批次，連續失敗會停止重送。慢速模型的等待上限與本機橋接服務一致。
+- Dual subtitle matching retains overlapping segments and avoids calibrating against repeated short phrases or stale cues after seeking.
+- 雙軌字幕保留重疊分段，避免用重複短句或跳轉前的舊字幕誤校時間。
+- Provider requests time out during both connection and response-body reads. PDF text splitting preserves whitespace and uses smaller batches.
+- 模型請求的連線與讀取都有逾時處理。PDF 分段保留原有空白，並使用較小批次。
+- Updated the English interface dictionary, shared Safari resources, regression coverage and download-first project page.
+- 同步英文介面、Safari 共用資源與回歸測試，重新編寫功能介紹與下載入口。
+
+Live-site behavior depends on caption access, available languages and model availability. See [verification scope](docs/VERIFICATION-0.8.1.md).
+實際網站仍受字幕取得、語言與模型可用性影響。詳見[驗證範圍](docs/VERIFICATION-0.8.1.md)。
+
 ## 0.8.0 — 2026-09-04
 
 The complete edition. Everything the 0.7.x releases listed as **Coming soon** now

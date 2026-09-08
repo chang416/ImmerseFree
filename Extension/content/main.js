@@ -122,12 +122,13 @@
       return true;
     }
     if (message?.type === "IMMERSEFREE_COLLECT_STUDY") {
-      if (!bridge.dualSubtitle) {
+      const studyCollector = /(^|\.)youtube\.com$/.test(location.hostname) ? bridge.subtitleTranslator : bridge.dualSubtitle;
+      if (!studyCollector?.collectStudyPairs) {
         sendResponse({ ok: false, error: "這個分頁還在跑舊版內容腳本，請按 F5 重新整理後再試。" });
         return false;
       }
       currentSettings()
-        .then((current) => bridge.dualSubtitle.collectStudyPairs(current))
+        .then((current) => studyCollector.collectStudyPairs(current))
         .then((result) => sendResponse({ ok: true, ...result, title: document.title, url: location.href }))
         .catch((error) => sendResponse({ ok: false, error: error.message, code: error.code ?? "" }));
       return true;
@@ -136,7 +137,8 @@
       sendResponse({
         ok: true,
         ai: Boolean(bridge.subtitleTranslator?.enabled),
-        dual: Boolean(bridge.dualSubtitle?.getState().active)
+        dual: Boolean(bridge.dualSubtitle?.getState().active),
+        detail: bridge.subtitleTranslator?.getState?.()
       });
       return false;
     }

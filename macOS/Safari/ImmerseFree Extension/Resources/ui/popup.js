@@ -75,8 +75,9 @@ let glossaryOriginalTerms = [];
 let glossaryDomainValue = "";
 let settings = await getSettings();
 
-await loadModelCatalog();
 renderSettings();
+// 模型清單在背景載入，服務變慢不應阻塞所有按鈕。
+void loadModelCatalog().then(renderSettings).catch((error) => setStatus(describeFailure(error), "error"));
 document.querySelector("#translate-page").addEventListener("click", () => startContentAction("IMMERSEFREE_TRANSLATE_PAGE"));
 document.querySelector("#toggle-ai-subtitles").addEventListener("click", () => toggleSubtitleMode("ai"));
 document.querySelector("#toggle-dual-subtitles").addEventListener("click", () => toggleSubtitleMode("dual"));
@@ -94,6 +95,16 @@ document.querySelector("#glossary-add-global").addEventListener("click", () => {
 document.querySelector("#glossary-save").addEventListener("click", saveGlossary);
 document.querySelector("#audit-close").addEventListener("click", () => { document.querySelector("#audit").hidden = true; });
 void syncOnOpen();
+let subtitlePollPending = false;
+const subtitlePoll = setInterval(async () => {
+  if (subtitlePollPending || subtitleActionPending) return;
+  subtitlePollPending = true;
+  try {
+    const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) await withDeadline(refreshSubtitleButtons(tab), 2500, "字幕狀態讀取");
+  } catch {} finally { subtitlePollPending = false; }
+}, 2000);
+window.addEventListener("pagehide", () => clearInterval(subtitlePoll));
 
 // 打開 popup 時同步一次：字幕按鍵要顯示目前的實際狀態，影集學習在不支援的
 // 站台上要直接標示出來，不要讓人按了才知道。
@@ -101,12 +112,13 @@ async function syncOnOpen() {
   try {
     const [tab] = await api.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) return;
-    if (!isStudySite(tab.url)) {
-      document.querySelector("#open-study").disabled = true;
-      document.querySelector("#study-note").textContent = "只支援 Disney+ 和 Netflix";
-      document.querySelector("#toggle-dual-subtitles").disabled = true;
-      document.querySelector("#dual-subtitle-note").textContent = "只支援 Disney+ 和 Netflix";
-    }
+    const streaming = isStreamingSite(tab.url);
+    const studyAvailable = isStudySite(tab.url);
+    document.querySelector("#open-study").disabled = !studyAvailable;
+    document.querySelector("#study-note").textContent = studyAvailable ? "從影片整理單字與句型" : "請開啟 YouTube、Netflix 或 Disney+";
+    document.querySelector("#toggle-dual-subtitles").disabled = !streaming;
+    document.querySelector("#dual-subtitle-note").textContent = streaming ? "使用平台原有譯文" : "Netflix、Disney+ 的原有雙語字幕";
+    document.querySelector("#video-site").textContent = streaming ? (new URL(tab.url).hostname.includes("netflix") ? "Netflix" : "Disney+") : studyAvailable ? "YouTube" : "一般網頁";
     await refreshSubtitleButtons(tab);
     await refreshSubtitleExport(tab);
     await refreshGlossary(tab);
@@ -337,7 +349,11 @@ async function setDisplayMode(mode) {
 }
 
 function renderSettings() {
-  provider.value = `${settings.provider}::${selectedModel(settings)}`;
+  const selection = `${settings.provider}::${selectedModel(settings)}`;
+  if (![...provider.options].some((option) => option.value === selection)) {
+    provider.append(new Option(selectedModel(settings) || "尚未設定模型", selection));
+  }
+  provider.value = selection;
   sourceLanguage.value = settings.sourceLanguage;
   targetLanguage.value = settings.targetLanguage;
   selectionButton.setAttribute("aria-pressed", String(settings.selectionTranslationEnabled));
@@ -386,9 +402,9 @@ async function saveQuickSettings() {
 async function loadModelCatalog() {
   let catalog;
   try {
-    const response = await api.runtime.sendMessage({ type: "IMMERSEFREE_GET_MODEL_CATALOG" });
+    const response = await withDeadline(api.runtime.sendMessage({ type: "IMMERSEFREE_GET_MODEL_CATALOG" }), 12_000, "模型清單暫時無法更新，仍可使用目前選定的模型");
     catalog = response?.catalog;
-  } catch {}
+  } catch (error) { setStatus(error.message, "error"); }
   if (!catalog) return;
   const currentValue = `${settings.provider}::${selectedModel(settings)}`;
   provider.replaceChildren();
@@ -479,9 +495,21 @@ async function notifyTabSettings() {
   } catch {}
 }
 
+let pageActionPending = false;
 function startContentAction(type) {
+  if (pageActionPending) return;
+  pageActionPending = true;
+  translatePageButton.disabled = true;
+  translatePageButton.setAttribute("aria-busy", "true");
+  translatePageLabel.textContent = "準備翻譯";
+  setStatus("", "");
   const siteAccessRequest = beginSiteAccessRequest(api);
-  void sendToTab(type, siteAccessRequest);
+  void sendToTab(type, siteAccessRequest).finally(() => {
+    pageActionPending = false;
+    translatePageButton.disabled = false;
+    translatePageButton.removeAttribute("aria-busy");
+    translatePageLabel.textContent = "翻譯這個網頁";
+  });
 }
 
 async function sendToTab(type, siteAccessRequest) {
@@ -533,6 +561,7 @@ async function translateCurrentPage(tab) {
     } else {
       pageProgress.hidden = true;
     }
+    pageProgress.hidden = true;
     setStatus(response.message ?? "完成", "success");
   } catch (error) {
     // 「receiving end does not exist」是瀏覽器原生的訊息，沒有 code 可查，
@@ -540,7 +569,7 @@ async function translateCurrentPage(tab) {
     const notReady = /receiving end|message port|connection|respond/i.test(String(error?.message));
     const code = notReady ? "PAGE_SCRIPT_NOT_READY" : String(error?.code ?? "");
     const message = notReady ? diagnostics.messageFor("PAGE_SCRIPT_NOT_READY") : describeFailure(error);
-    renderPageProgress({ state:"error", completed:0, total:0, message });
+    pageProgress.hidden = true;
     throw Object.assign(new Error(message), { code });
   } finally {
     stopped = true;
@@ -565,11 +594,19 @@ function setStatus(message, state) {
 }
 
 
+let subtitleActionPending = false;
 async function toggleSubtitleMode(mode) {
+  if (subtitleActionPending) return;
+  subtitleActionPending = true;
   const siteAccessRequest = beginSiteAccessRequest(api);
   const button = document.querySelector(mode === "dual" ? "#toggle-dual-subtitles" : "#toggle-ai-subtitles");
-  button.disabled = true;
-  setStatus("", "");
+  const subtitleButtons = [document.querySelector("#toggle-ai-subtitles"), document.querySelector("#toggle-dual-subtitles")];
+  const previousDisabled = subtitleButtons.map((item) => item.disabled);
+  for (const item of subtitleButtons) item.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  const previousLabel = button.textContent;
+  button.textContent = "處理中";
+  setStatus("正在更新字幕模式…", "pending");
   try {
     const tab = await activeTab();
     await ensureContentScript(api, tab, (message) => setStatus(message, "pending"), siteAccessRequest);
@@ -583,7 +620,10 @@ async function toggleSubtitleMode(mode) {
     setStatus(describeFailure(error), "error");
     try { await refreshSubtitleButtons(await activeTab()); } catch {}
   } finally {
-    button.disabled = false;
+    subtitleActionPending = false;
+    button.removeAttribute("aria-busy");
+    if (button.textContent === "處理中") button.textContent = previousLabel;
+    subtitleButtons.forEach((item, index) => { item.disabled = previousDisabled[index]; });
   }
 }
 
@@ -604,6 +644,15 @@ async function refreshSubtitleButtons(tab) {
     const dual = document.querySelector("#toggle-dual-subtitles");
     ai.textContent = states.ai ? "關閉" : "開啟";
     dual.textContent = states.dual ? "關閉" : "開啟";
+    const note = document.querySelector("#ai-subtitle-row .control-copy small");
+    const progress = states.detail?.youtube;
+    if (note) {
+      note.textContent = !states.ai || states.detail?.site !== "youtube" ? "先取得字幕，再批次翻譯"
+        : progress?.state === "failed" ? (progress.retryAt ? "暫時失敗，將自動重試" : "取得失敗，請關閉後重試")
+        : progress?.totalCues ? `已完成 ${progress.completedCues} / ${progress.totalCues} 句`
+        : "正在取得影片字幕";
+      note.title = progress?.failure || "";
+    }
     ai.setAttribute("aria-pressed", String(Boolean(states.ai)));
     dual.setAttribute("aria-pressed", String(Boolean(states.dual)));
     setSubtitleIndicator(states.ai && states.dual ? "conflict" : states.dual ? "dual" : states.ai ? "ai" : "off");
@@ -616,14 +665,15 @@ async function refreshSubtitleButtons(tab) {
 function setSubtitleIndicator(mode) {
   const status = document.querySelector("#subtitle-status");
   status.dataset.mode = mode;
-  status.querySelector("span").textContent = mode === "ai" ? "AI 字幕運作中 · 使用模型額度"
-    : mode === "dual" ? "雙軌字幕運作中 · 不使用模型額度"
+  status.title = mode === "ai" ? "AI 字幕使用模型額度；點擊查看字幕來源" : "點擊查看字幕來源";
+  status.querySelector("span").textContent = mode === "ai" ? "AI 字幕已開"
+    : mode === "dual" ? "雙軌字幕已開"
       : mode === "conflict" ? "字幕模式衝突"
         : "字幕未開啟";
 }
 
 // 影集學習只在有完整字幕軌的串流平台上有意義。
-function isStudySite(url) {
+function isStreamingSite(url) {
   try {
     const host = new URL(url).hostname.toLowerCase();
     return /(^|\.)(disneyplus\.com|netflix\.com)$/.test(host);
@@ -632,29 +682,26 @@ function isStudySite(url) {
   }
 }
 
+function isStudySite(url) {
+  try {
+    const parsed = new URL(url);
+    return isStreamingSite(url) || (/(^|\.)youtube\.com$/.test(parsed.hostname) &&
+      (parsed.pathname === "/watch" && Boolean(parsed.searchParams.get("v")) || /^\/(shorts|embed)\/[^/]+/.test(parsed.pathname)));
+  } catch { return false; }
+}
+
 async function openStudy() {
   const siteAccessRequest = beginSiteAccessRequest(api);
   const button = document.querySelector("#open-study");
   button.disabled = true;
-  setStatus("正在抓這一集的雙語字幕…", "pending");
+  setStatus("正在取得影片字幕…", "pending");
   try {
     const tab = await activeTab();
-    if (!isStudySite(tab.url)) throw new Error("影集學習目前只支援 Disney+ 和 Netflix");
+    if (!isStudySite(tab.url)) throw new Error("請開啟 YouTube、Disney+ 或 Netflix 的影片頁面");
     await ensureContentScript(api, tab, (message) => setStatus(message, "pending"), siteAccessRequest);
-    const response = await api.tabs.sendMessage(tab.id, { type: "IMMERSEFREE_COLLECT_STUDY" });
-    if (!response?.ok) throw failureFromResponse(response, "抓字幕失敗");
-    await api.storage.local.set({
-      studyEpisode: {
-        title: response.title ?? "",
-        url: response.url ?? tab.url,
-        pairs: response.pairs ?? [],
-        learnLanguage: response.learnLanguage ?? "",
-        helpLanguage: response.helpLanguage ?? "",
-        collectedAt: Date.now()
-      }
-    });
-    setStatus(`抓到 ${response.pairs.length} 句，開啟學習頁`, "success");
-    await api.tabs.create({ url: api.runtime.getURL("ui/study.html") });
+    // 長時間收集移到學習頁；popup 關閉不會中斷整個工作。
+    await api.tabs.create({ url: api.runtime.getURL(`ui/study.html?sourceTab=${tab.id}`) });
+    setStatus("已開啟學習頁，正在取得字幕", "success");
   } catch (error) {
     setStatus(describeFailure(error), "error");
   } finally {
@@ -813,3 +860,32 @@ function escapeHtml(value) {
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
+
+function withDeadline(promise, ms, message) {
+  let timer;
+  return Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), ms); })])
+    .finally(() => clearTimeout(timer));
+}
+
+// 面板沿用同一個視窗，關閉後把鍵盤焦點還給原按鈕。
+let panelOpener;
+const panelObserver = new MutationObserver((records) => {
+  for (const { target } of records) {
+    if (!target.hidden) {
+      panelOpener = document.activeElement;
+      target.querySelector("button, input")?.focus();
+    } else if (panelOpener?.isConnected) panelOpener.focus();
+  }
+});
+for (const panel of [glossaryPanel, document.querySelector("#audit")]) panelObserver.observe(panel, { attributes: true, attributeFilter: ["hidden"] });
+document.addEventListener("keydown", (event) => {
+  const panel = [glossaryPanel, document.querySelector("#audit")].find((item) => !item.hidden);
+  if (!panel) return;
+  if (event.key === "Escape") { panel.hidden = true; event.preventDefault(); }
+  if (event.key === "Tab") {
+    const items = [...panel.querySelectorAll("button:not(:disabled), input, select")].filter((item) => item.getClientRects().length);
+    const first = items[0], last = items.at(-1);
+    if (event.shiftKey && document.activeElement === first) { last?.focus(); event.preventDefault(); }
+    else if (!event.shiftKey && document.activeElement === last) { first?.focus(); event.preventDefault(); }
+  }
+});

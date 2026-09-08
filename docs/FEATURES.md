@@ -1,10 +1,10 @@
 # Features｜功能總覽
 
-A complete list of what ImmerseFree 0.8.0 does. Every number on this page comes
+A complete list of what ImmerseFree 0.8.1 does. Every number on this page comes
 from the shipped source, not from marketing copy; the file that defines each one
 is named so you can check it yourself.
 
-ImmerseFree 0.8.0 的完整功能清單。這一頁的每個數字都是從實際出貨的原始碼抄下來的，不是宣傳
+ImmerseFree 0.8.1 的完整功能清單。這一頁的每個數字都是從實際出貨的原始碼抄下來的，不是宣傳
 文案；每一項都寫明是哪個檔案定義的，你可以自己去對。
 
 ---
@@ -99,10 +99,10 @@ site, not how the translation is styled — there is no per-site theme field.
 |---|---|---|---|
 | AI subtitles (YouTube) | Turns captions on by itself, then draws its own translated line under them using the model you selected. | AI 字幕（YouTube） | 自動幫你把字幕打開，再用你選的模型在原字幕下方畫出自己的譯文行。 |
 | Semantic merging | Player cues are cut for display timing, not for meaning. ImmerseFree merges them back into whole sentences before translating, so the model sees a real sentence. | 語意合併 | 播放器的字幕片段是為了顯示節奏切開的，不是照語意切。ImmerseFree 會先合併回完整句子再送翻，模型才看得到一句完整的話。 |
-| Single-line display | The translation stays on one line where it can. If it overflows, the font shrinks first — to 65% on YouTube, 72% on Netflix and Disney+ — and only then does it wrap to a second line. | 單行顯示 | 譯文盡量維持一行。放不下時先縮字級——YouTube 到 65%，Netflix 與 Disney+ 到 72%——縮到底才折第二行。 |
+| Readable subtitle layout | YouTube fits short translations to one line and wraps longer ones. Netflix and Disney+ use semantic breaks with at most two lines. | 字幕排版 | YouTube 短句維持一行，長句換行；Netflix 與 Disney+ 依語意斷句，最多兩行。 |
 | Dual subtitles (Netflix, Disney+) | These services already ship several subtitle tracks. ImmerseFree shows a second one alongside the first — **no model, no quota, no cost**. | 雙軌字幕（Netflix、Disney+） | 這兩個平台本來就附了好幾條字幕軌，ImmerseFree 直接把第二條疊上去顯示——**不用模型、不吃額度、不花錢**。 |
 | SRT export, 3 modes | Export the subtitles as an `.srt` file: translation only, original only, or both. | SRT 匯出，三種模式 | 把字幕輸出成 `.srt` 檔：只要中文、只要原文，或雙語。 |
-| Episode study | Turns one episode's subtitles into vocabulary and sentence-pattern notes at your level. | 影集學習 | 把一集的字幕整理成符合你程度的單字與句型教材。 |
+| Video study | Turns available YouTube, Netflix or Disney+ captions into vocabulary and sentence-pattern notes at your level. An original-language track is sufficient. | 影片學習 | 將 YouTube、Netflix 或 Disney+ 可取得的字幕整理成符合程度的教材；只取得原文字幕也能使用。 |
 | Subtitle glossary | Pin how a proper noun should be translated so it stays consistent across the whole episode. | 字幕術語表 | 釘住專有名詞的譯法，讓它在整集裡保持一致。 |
 
 AI subtitles are YouTube-only (`Extension/core/youtube-subtitle-core.js`). Dual
@@ -129,13 +129,13 @@ A streaming manifest lists every subtitle language at once; the player mounts on
 at a time. Dual subtitles fetch the track you did not select and render it under
 the one you did. No model is called on this path at all, so it consumes no quota
 and needs no API key, and the second line is the distributor's own professional
-translation rather than a generated one. Timecodes come from the same official
-file, so the two lines stay aligned without correction.
+translation rather than a generated one. The original track timecodes are preserved. Player timing offsets may require
+calibration; caption segmentation can differ between languages.
 
 串流平台的播放清單裡本來就同時列著所有語言的字幕，播放器只是一次掛一條。雙軌字幕把你
 沒選到的那條抓下來，畫在你選的那條底下。這條路徑完全不呼叫模型，所以不吃額度也不需要
-API key，而第二行是片商自己的專業翻譯，不是生成出來的。時間碼出自同一份官方檔案，兩行
-不需要校正就是對齊的。
+API key，而第二行是片商自己的專業翻譯，不是生成出來的。沿用各字幕軌的原始時間碼；播放器偏移仍需校正，
+不同語言的斷句也可能不同。
 
 Three acquisition routes are tried in order, and whichever succeeds is used
 (`Extension/content/dual-subtitle.js`):
@@ -241,22 +241,16 @@ keep that translation short.
 每秒字元數才讀得完的句子，會請模型把那句譯文壓短。
 
 **Line breaking** (`Extension/core/subtitle-linebreak-core.js`, applied in
-`youtube-subtitle-core.js` and `streaming-subtitle-core.js`). The translated line
-is kept on one line where possible. The rendered width is measured against 90% of
-the player width; if it overflows, the font is scaled down, to a floor of **65%**
-on YouTube and **72%** on Netflix and Disney+, where the player's own type is
-smaller to begin with. Only if it still does not fit does it fall back to two
-lines at the original size. Breaks are placed at punctuation and English word
-boundaries, roughly 14–18 full-width characters per line, never more than two
-lines. YouTube's base font size is derived from the player rectangle and clamped
-between 16 px and 36 px.
+`youtube-subtitle-core.js` and `streaming-subtitle-core.js`). YouTube measures
+against 90% of the player width, scales a single line down to a 65% threshold,
+then falls back to two lines at the original size. Its base font size is clamped
+between 16 px and 36 px. Netflix and Disney+ first split at semantic boundaries
+into at most two lines, then position the result using its measured height.
 
 **斷行**（`Extension/core/subtitle-linebreak-core.js`，套用在
-`youtube-subtitle-core.js` 與 `streaming-subtitle-core.js`）。譯文盡量維持一行。
-實測寬度會跟播放器寬度的 90% 比對；放不下就縮字級，YouTube 最低到 **65%**，
-Netflix 與 Disney+ 是 **72%**（那兩邊播放器本身的字就比較小）。縮到底仍放不下，
-才退回兩行，字級維持原大小。斷點挑在標點與英文詞界，一行約 14–18 個全形字，最多兩行。
-YouTube 的基準字級由播放器矩形推算，並夾在 16 px 到 36 px 之間。
+`youtube-subtitle-core.js` 與 `streaming-subtitle-core.js`）。YouTube 以播放器寬度的
+90% 為上限，單行可縮至 65%，再退回原字級的兩行；基準字級介於 16 與 36 像素。
+Netflix 與 Disney+ 先依語意切成最多兩行，再依實測高度定位。
 
 **Why the model is not asked to break lines.** It returns a batch of
 translations as structured JSON. A newline the model inserts is unreliable — it

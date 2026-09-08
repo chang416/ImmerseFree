@@ -27,9 +27,6 @@
       <label class="model-field">
         <span>模型</span>
         <select id="provider">
-          <option value="antigravity::gemini-3.6-flash-low">Gemini 3.6 Flash Low（Antigravity）</option>
-          <option value="opencode::mimo-v2.5-free">MiMo 2.5 Free（OpenCode）</option>
-          <option value="gemini::gemini-3.5-flash-lite">Gemini 3.5 Flash Lite（API）</option>
         </select>
       </label>
       <div class="language-row">
@@ -58,17 +55,20 @@
           </select>
         </label>
       </div>
-      <div class="display-mode" role="group" aria-label="顯示模式">
-        <button id="mode-bilingual" class="display-mode-option" type="button" aria-pressed="true">雙語對照</button>
-        <button id="mode-translation-only" class="display-mode-option" type="button" aria-pressed="false">僅譯文</button>
-      </div>
+
     </section>
 
+    <div class="action-row">
     <button id="translate-page" class="primary-action" type="button">
       <i class="ph ph-translate"></i>
       <span>翻譯這個網頁</span>
       <i class="ph ph-arrow-right"></i>
     </button>
+      <div class="display-mode" role="group" aria-label="顯示模式">
+        <button id="mode-bilingual" class="display-mode-option" type="button" aria-pressed="true">雙語對照</button>
+        <button id="mode-translation-only" class="display-mode-option" type="button" aria-pressed="false">僅譯文</button>
+      </div>
+    </div>
 
     <!-- 一行三格：狀態文字、進度條、計數。三者同一列，進度就貼在主按鈕下面，
          不必再為它多開一張有框的卡。 -->
@@ -78,47 +78,48 @@
       <b id="page-progress-count"></b>
     </section>
 
-    <section class="tools" aria-label="翻譯工具">
+    <section class="tools" aria-label="文件與文字翻譯">
       <button id="translate-pdf" class="tool-button" type="button">
-        <i class="ph ph-file-pdf"></i><span>PDF 文件</span>
+        <i class="ph ph-file-pdf"></i><span>PDF</span>
       </button>
       <button id="translate-epub" class="tool-button" type="button">
-        <i class="ph ph-book-open-text"></i><span>EPUB 電子書</span>
+        <i class="ph ph-book-open-text"></i><span>EPUB</span>
       </button>
       <button id="export-docx" class="tool-button" type="button">
-        <i class="ph ph-file-doc"></i><span>匯出雙語 Word</span>
+        <i class="ph ph-file-doc"></i><span>雙語 Word</span>
       </button>
       <button id="open-more-settings" class="tool-button" type="button">
         <i class="ph ph-sliders-horizontal"></i><span>翻譯品質</span>
       </button>
       <button id="toggle-selection" class="tool-button tool-button-mode" type="button" aria-pressed="false">
         <i class="ph ph-selection"></i>
-        <span class="tool-copy"><strong>反白文字</strong><small>拖曳選取，放開就翻譯</small></span>
+        <span class="tool-copy"><strong>反白文字</strong><small>選取後翻譯</small></span>
         <b id="selection-state">關</b>
       </button>
       <button id="toggle-hover" class="tool-button tool-button-mode" type="button" aria-pressed="false">
         <i class="ph ph-cursor-click"></i>
-        <span class="tool-copy"><strong>懸停段落</strong><small>不用反白，停留 0.7 秒</small></span>
+        <span class="tool-copy"><strong>懸停段落</strong><small>停留後翻譯</small></span>
         <b id="hover-state">關</b>
       </button>
     </section>
 
     <section class="video-deck" aria-label="影片">
+      <div class="section-heading"><span>影片與學習</span><span id="video-site">偵測目前網頁</span></div>
       <div class="video-control" id="ai-subtitle-row">
         <i class="ph ph-subtitles"></i>
-        <span class="control-copy"><strong>AI 字幕</strong><small>使用模型翻譯影片字幕</small></span>
+        <span class="control-copy"><strong>AI 字幕</strong><small>先取得字幕，再批次翻譯</small></span>
         <button id="toggle-ai-subtitles" class="compact-button" type="button" aria-pressed="false">開啟</button>
       </div>
 
       <div class="video-control" id="dual-subtitle-row">
         <i class="ph ph-closed-captioning"></i>
-        <span class="control-copy"><strong>雙軌字幕</strong><small id="dual-subtitle-note">使用 Netflix、Disney+ 原有字幕軌</small></span>
+        <span class="control-copy"><strong>雙軌字幕</strong><small id="dual-subtitle-note">使用平台原有譯文</small></span>
         <button id="toggle-dual-subtitles" class="compact-button" type="button" aria-pressed="false">開啟</button>
       </div>
 
       <div class="video-control" id="study-row">
         <i class="ph ph-graduation-cap"></i>
-        <span class="control-copy"><strong>影集學習</strong><small id="study-note">整理這一集的單字與句型</small></span>
+        <span class="control-copy"><strong>影片學習</strong><small id="study-note">從影片整理單字與句型</small></span>
         <button id="open-study" class="compact-button" type="button">開始</button>
       </div>
 
@@ -142,7 +143,7 @@
       </div>
     </section>
 
-    <section id="glossary-panel" class="glossary" hidden>
+    <section id="glossary-panel" class="glossary" role="dialog" aria-modal="true" aria-label="術語表" hidden>
       <div class="audit-head">
         <strong>術語表</strong>
         <button id="glossary-close" class="audit-close" type="button" aria-label="關閉術語表">×</button>
@@ -164,7 +165,7 @@
       </div>
     </section>
 
-    <section id="audit" class="audit" hidden>
+    <section id="audit" class="audit" role="dialog" aria-modal="true" aria-label="字幕來源" hidden>
       <div class="audit-head"><strong>畫面上的中文是誰畫的</strong><button id="audit-close" class="audit-close" type="button">×</button></div>
       <div id="audit-body"></div>
     </section>

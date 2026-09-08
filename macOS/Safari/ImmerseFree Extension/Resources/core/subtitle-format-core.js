@@ -341,7 +341,23 @@
     return "";
   }
 
+  function pairByOverlap(source, translation) {
+    const targets = normalizeCues(translation);
+    let cursor = 0;
+    return normalizeCues(source).map((line) => {
+      while (cursor < targets.length && targets[cursor].end <= line.start) cursor += 1;
+      const texts = [];
+      for (let index = cursor; index < targets.length && targets[index].start < line.end; index += 1) {
+        const other = targets[index];
+        const overlap = Math.min(line.end, other.end) - Math.max(line.start, other.start);
+        if (overlap > 0 && overlap >= Math.min(.15, (other.end - other.start) / 2) && !texts.includes(other.text)) texts.push(other.text);
+      }
+      return { start: line.start, end: line.end, source: line.text, translation: texts.join(" ") };
+    });
+  }
+
   global.ImmerseFreeSubtitleFormat = Object.freeze({
+    pairByOverlap,
     parseSubtitle,
     parseWebVtt,
     parseTtml,

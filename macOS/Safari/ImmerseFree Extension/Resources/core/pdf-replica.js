@@ -51,9 +51,24 @@ export function buildPdfReplicaLayers(inputLines) {
       lineCount:block.lineCount
     }));
 
+  let layers = [...labelLayers, ...proseLayers];
+  if (!layers.length && lines.some((line) => (line.text.match(/\p{L}/gu)?.length ?? 0) >= 2)) {
+    const fallbackLines = lines.filter((line) => (line.text.match(/\p{L}/gu)?.length ?? 0) >= 2);
+    layers = fallbackLines.map((line, index) => ({
+      id: `pdf-fallback-${index + 1}`,
+      kind: "paragraph",
+      sourceText: line.text,
+      left: line.left,
+      top: line.top,
+      width: line.width,
+      height: line.height,
+      lineCount: 1
+    }));
+  }
+
   return {
-    layers:[...labelLayers,...proseLayers].sort((a,b) => a.top-b.top || a.left-b.left),
-    preserved:preserved.map((line) => ({ ...line }))
+    layers: layers.sort((a, b) => a.top - b.top || a.left - b.left),
+    preserved: preserved.map((line) => ({ ...line }))
   };
 }
 

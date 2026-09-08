@@ -20,9 +20,8 @@ import {
 import { pdfOpenErrorMessage, pdfTranslationErrorMessage, scannedPdfMessage } from "../core/pdf-support.js";
 
 const api = globalThis.browser ?? globalThis.chrome;
-// PDF 走網頁那組批量（16 項），字元預算沿用它原本的 8000——PDF 的一個
-// 翻譯單位最長 1800 字，用網頁的 6000 會讓一批只放得下三段。
-const PDF_BATCH = globalThis.ImmerseFreeBatchCore.batchProfile("pdf", { maxChars: 8000 });
+// PDF 一批調為最多 8 項、4000 字元，避免密集頁面輸出過長導致模型截斷或逾時。
+const PDF_BATCH = globalThis.ImmerseFreeBatchCore.batchProfile("pdf", { maxChars: 4000, maxItems: 8 });
 pdfjs.GlobalWorkerOptions.workerSrc = api.runtime.getURL("vendor/pdfjs/pdf.worker.mjs");
 
 const pagesRoot = document.querySelector("#pages");
@@ -329,7 +328,7 @@ async function translatePage(number) {
     if (!pending.length) return;
     meter.hidden=false;meter.max=pending.length;meter.value=0;
     let completed=0;
-    const units=buildPdfTranslationUnits(pending,1800);
+    const units=buildPdfTranslationUnits(pending,1200);
     const translatedUnits=new Map();
     for (const batch of makeBatches(units,PDF_BATCH.maxItems,PDF_BATCH.maxChars)) {
       if (cancelled) break;

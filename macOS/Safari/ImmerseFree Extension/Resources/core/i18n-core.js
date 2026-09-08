@@ -9,6 +9,29 @@
 
   const MESSAGES = {
     en: {
+      // 0.8.1 compact panel and video study
+      "雙語 Word": "Bilingual Word",
+      "選取後翻譯": "Translate selection",
+      "停留後翻譯": "Translate on hover",
+      "影片與學習": "Video & study",
+      "偵測目前網頁": "Detecting page",
+      "先取得字幕，再批次翻譯": "Fetch captions, then translate",
+      "使用平台原有譯文": "Use the platform’s subtitles",
+      "影片學習": "Video study",
+      "從影片整理單字與句型": "Learn words and patterns",
+      "文件與文字翻譯": "Documents & text",
+      "字幕來源": "Subtitle source",
+      "請開啟 YouTube、Netflix 或 Disney+": "Open YouTube, Netflix or Disney+",
+      "Netflix、Disney+ 的原有雙語字幕": "Official Netflix / Disney+ tracks",
+      "一般網頁": "Web page",
+      "正在取得影片字幕": "Fetching video captions",
+      "暫時失敗，將自動重試": "Temporarily unavailable; retrying",
+      "取得失敗，請關閉後重試": "Unavailable; switch off and retry",
+      "正在取得影片字幕，請保留原本的影片分頁。": "Fetching captions. Keep the video tab open.",
+      "字幕已就緒，選擇程度後即可生成教材。": "Captions ready. Choose your level to create a lesson.",
+      "重新取得字幕": "Fetch captions again",
+      "字幕尚未就緒": "Captions not ready",
+      "沒有可用的字幕資料": "No captions available",
       // ── 0.8.0 新增介面文字 ──────────────────────────────
       "影片": "Video",
       "失敗自動轉移": "Automatic failover",

@@ -312,7 +312,7 @@ api.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
   if (message?.type === "IMMERSEFREE_STUDY_GENERATE") {
-    generateStudy(message.profile)
+    generateStudy(message.profile, message.episode, message.requestId)
       .then((result) => sendResponse({ ok: true, ...result }))
       .catch((error) => sendResponse({ ok: false, error: error.message, code: error.code ?? "" }));
     return true;
@@ -765,8 +765,8 @@ function validateSegments(value) {
     throw diagnostics.diagnosticError("Translation request must contain 1-40 segments", "REQUEST_SEGMENT_COUNT");
   }
   const segments = value.map((item) => String(item ?? "").trim());
-  if (segments.some((item) => !item || item.length > 2000)) {
-    throw diagnostics.diagnosticError("Each segment must contain 1-2000 characters", "REQUEST_SEGMENT_LENGTH");
+  if (segments.some((item) => !item || item.length > 2500)) {
+    throw diagnostics.diagnosticError("Each segment must contain 1-2500 characters", "REQUEST_SEGMENT_LENGTH");
   }
   if (segments.reduce((sum, item) => sum + item.length, 0) > 12000) {
     throw diagnostics.diagnosticError("Translation request is too large", "REQUEST_TOO_LARGE");
@@ -1052,12 +1052,12 @@ function fallbackCatalog() {
 //
 // 一集大約五到八百句，一次全丟給模型會被截斷，所以分批處理再合併。
 // 批次之間互相獨立，一批失敗不影響其他批，最後回報失敗數讓使用者自己判斷。
-async function generateStudy(profileInput) {
+async function generateStudy(profileInput, episodeInput, requestId = "") {
   const profile = study.resolveLevel(profileInput);
   if (!profile) throw diagnostics.diagnosticError("程度資料不完整", "STUDY_PROFILE_INCOMPLETE");
 
   const stored = await api.storage.local.get("studyEpisode");
-  const episode = stored?.studyEpisode;
+  const episode = episodeInput ?? stored?.studyEpisode;
   if (!episode?.pairs?.length) throw diagnostics.diagnosticError("沒有字幕資料，請回播放頁重新抓一次", "STUDY_NO_EPISODE");
 
   const settings = await getSettings();
@@ -1068,7 +1068,7 @@ async function generateStudy(profileInput) {
   let failed = 0;
 
   for (let i = 0; i < chunks.length; i += 1) {
-    api.runtime.sendMessage({ type: "IMMERSEFREE_STUDY_PROGRESS", done: i, total: chunks.length }).catch(() => {});
+    api.runtime.sendMessage({ type: "IMMERSEFREE_STUDY_PROGRESS", requestId, done: i, total: chunks.length }).catch(() => {});
     const prompt = study.buildStudyPrompt(chunks[i], profile, { title: episode.title });
     try {
       const text = await completeText(prompt, settings);
@@ -1077,7 +1077,7 @@ async function generateStudy(profileInput) {
       failed += 1;
     }
   }
-  api.runtime.sendMessage({ type: "IMMERSEFREE_STUDY_PROGRESS", done: chunks.length, total: chunks.length }).catch(() => {});
+  api.runtime.sendMessage({ type: "IMMERSEFREE_STUDY_PROGRESS", requestId, done: chunks.length, total: chunks.length }).catch(() => {});
 
   if (!results.length) throw diagnostics.diagnosticError("每一批都失敗了。請確認翻譯引擎可用，或改用 Gemini API。", "STUDY_ALL_BATCHES_FAILED");
   const merged = study.mergeStudyResults(results);

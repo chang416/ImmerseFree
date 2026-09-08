@@ -139,12 +139,28 @@
             media: template.getAttribute("media") ?? "",
             startNumber: Number(template.getAttribute("startNumber")) || 1,
             duration: Number(template.getAttribute("duration")) || 0,
-            timescale: Number(template.getAttribute("timescale")) || 1
+            timescale: Number(template.getAttribute("timescale")) || 1,
+            presentationTimeOffset: Number(template.getAttribute("presentationTimeOffset")) || 0,
+            timeline: readDashSegmentTimeline(template)
           });
         }
       }
     }
     return tracks;
+  }
+
+  function readDashSegmentTimeline(template) {
+    const timelineNode = [...(template?.getElementsByTagName?.("*") ?? [])]
+      .find((node) => node.localName === "SegmentTimeline");
+    if (!timelineNode) return [];
+    return [...(timelineNode.getElementsByTagName?.("*") ?? [])]
+      .filter((node) => node.localName === "S")
+      .map((node) => ({
+        t: node.hasAttribute("t") ? Number(node.getAttribute("t")) : undefined,
+        d: Number(node.getAttribute("d")),
+        r: Number(node.getAttribute("r"))
+      }))
+      .filter((entry) => Number.isFinite(entry.d) && entry.d > 0);
   }
 
   // Netflix 的 timed-text 軌通常不放在 HLS/DASH manifest，而是跟著
@@ -247,19 +263,60 @@
   }
 
   function dashSegmentUrls(track, totalSeconds) {
-    if (track.kind !== "dash-template" || !track.media || !track.duration) return [];
-    const segmentSeconds = track.duration / track.timescale;
-    if (segmentSeconds <= 0) return [];
-    const count = Math.ceil((Number(totalSeconds) || 0) / segmentSeconds);
+    if (track.kind !== "dash-template" || !track.media) return [];
+    const timescale = Number(track.timescale) || 1;
+    const total = Math.max(0, Number(totalSeconds) || 0);
+    const timeline = Array.isArray(track.timeline) ? track.timeline.filter((entry) => entry.d > 0) : [];
+    const fixedDuration = Number(track.duration) || 0;
+    if (!timeline.length && fixedDuration <= 0) return [];
+    const segmentSeconds = fixedDuration / timescale;
+    if (!timeline.length && segmentSeconds <= 0) return [];
+
+    const entries = [];
+    if (timeline.length) {
+      let cursor = 0;
+      for (let index = 0; index < timeline.length; index += 1) {
+        const item = timeline[index];
+        const start = Number.isFinite(item.t) ? item.t : cursor;
+        const nextStart = Number.isFinite(timeline[index + 1]?.t) ? timeline[index + 1].t : null;
+        const repeat = Number.isInteger(item.r) ? item.r : 0;
+        let count = repeat >= 0 ? repeat + 1 : 0;
+        if (repeat < 0) {
+          count = nextStart === null
+            ? (total > 0 ? Math.max(1, Math.ceil((total * timescale + (Number(track.presentationTimeOffset) || 0) - start) / item.d)) : 1)
+            : Math.max(1, Math.ceil((nextStart - start) / item.d));
+        }
+        for (let repeatIndex = 0; repeatIndex < count && entries.length < 20000; repeatIndex += 1) {
+          const time = start + repeatIndex * item.d;
+          const startSeconds = (time - (Number(track.presentationTimeOffset) || 0)) / timescale;
+          if (total > 0 && startSeconds >= total) break;
+          entries.push({ time, startSeconds, duration: item.d / timescale });
+        }
+        cursor = start + count * item.d;
+      }
+    } else {
+      const count = Math.ceil(total / segmentSeconds);
+      for (let index = 0; index < Math.min(count, 20000); index += 1) {
+        entries.push({
+          time: index * fixedDuration,
+          startSeconds: index * segmentSeconds,
+          duration: segmentSeconds
+        });
+      }
+    }
+
     const urls = [];
-    for (let i = 0; i < count; i += 1) {
-      const number = track.startNumber + i;
+    const firstNumber = Number(track.startNumber) || 1;
+    for (let index = 0; index < entries.length; index += 1) {
+      const entry = entries[index];
+      const number = firstNumber + index;
       const path = track.media
         .replace(/\$RepresentationID\$/g, track.representationId)
         .replace(/\$Number%0(\d+)d\$/g, (all, width) => String(number).padStart(Number(width), "0"))
         .replace(/\$Number\$/g, String(number))
-        .replace(/\$Time\$/g, String(Math.round(i * track.duration)));
-      urls.push({ url: resolveUrl(path, track.base), startSeconds: i * segmentSeconds, duration: segmentSeconds });
+        .replace(/\$Time%0(\d+)d\$/g, (all, width) => String(Math.round(entry.time)).padStart(Number(width), "0"))
+        .replace(/\$Time\$/g, String(Math.round(entry.time)));
+      urls.push({ url: resolveUrl(path, track.base), startSeconds: entry.startSeconds, duration: entry.duration });
     }
     return urls;
   }

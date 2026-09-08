@@ -14,6 +14,7 @@
   const manifestCore = global.ImmerseFreeManifestCore;
   const streaming = global.ImmerseFreeStreamingSubtitles;
   const language = global.ImmerseFreeLanguage;
+  const youtube = global.ImmerseFreeYouTubeSubtitles;
 
   const PENDING = new Map();
   let requestCounter = 0;
@@ -114,6 +115,34 @@
     return wanted;
   }
 
+  function cueListFromTextTrack(track) {
+    return format.normalizeCues([...((track?.cues ?? []))].map((cue) => ({
+      start: Number(cue.startTime),
+      end: Number(cue.endTime),
+      text: String(cue.text ?? "").replace(/<[^>]*>/g, "").trim()
+    })).filter((cue) => cue.text && Number.isFinite(cue.start) && Number.isFinite(cue.end)));
+  }
+
+  function sameLanguage(left, right) {
+    const a = String(left ?? "").replace(/_/g, "-").toLowerCase();
+    const b = String(right ?? "").replace(/_/g, "-").toLowerCase();
+    return Boolean(a && b) && (a === b || a.split("-")[0] === b.split("-")[0]);
+  }
+
+  // 目標字幕軌可能來自 manifest 或 metadata；原生畫面上的另一條軌才是
+  // 真正播放時間軸的基準。優先取 showing，再取有 active cue 的軌，最後才
+  // 取其他有完整 cues 的軌，並排除目標語言避免拿自己校準自己。
+  function collectVisibleNativeCues(video, excludedTrack, excludedLanguage = "") {
+    const tracks = [...(video?.textTracks ?? [])]
+      .filter((track) => track !== excludedTrack && !sameLanguage(track.language, excludedLanguage));
+    const ranked = tracks.sort((left, right) => {
+      const score = (track) => (track.mode === "showing" ? 2 : (track.activeCues?.length ? 1 : 0));
+      return score(right) - score(left);
+    });
+    const picked = ranked.find((track) => track.mode === "showing" || track.activeCues?.length || track.cues?.length);
+    return cueListFromTextTrack(picked);
+  }
+
   // ---------------------------------------------------------------- 取字幕
   // 路一：播放器自己掛在 <video> 上的字幕軌。有的話最省事，連網路都不用碰。
   function fromNativeTextTracks(video, wanted) {
@@ -127,6 +156,7 @@
     }));
     const picked = manifestCore.pickTrack(candidates, wanted);
     if (!picked) return null;
+    const visibleNativeCues = collectVisibleNativeCues(video, picked.track, picked.language);
     // hidden 會讓瀏覽器繼續解析 cue 但不畫出來，正是我們要的：
     // 畫面上維持播放器自己那條，我們只是把資料讀走。
     const previousMode = picked.track.mode;
@@ -142,6 +172,7 @@
     }
     return {
       cues: format.normalizeCues(list),
+      nativeCues: visibleNativeCues,
       source: "原生字幕軌",
       language: picked.language,
       restore: previousMode === picked.track.mode
@@ -287,14 +318,19 @@
         errors.push(`${shortUrl(chosen.url)} 的字幕${fit.reason}，不是這一集的`);
         return { cues: [], errors };
       }
+      const visibleNativeCues = collectVisibleNativeCues(video, null, chosen.picked.language);
       return {
         cues: list,
         source: (chosen.isDash ? "DASH 播放清單" : "HLS 播放清單")
           + (chosen.verdict === "match" ? "，已比對播放器分段" : "")
-          + (chosen.verdict === "content-match" ? "，已比對原生字幕內容" : "")
+        + (chosen.verdict === "content-match" ? "，已比對原生字幕內容" : "")
           + (preserveTimestampMap ? "，共用播放器時間軸" : ""),
         language: chosen.picked.language,
-        nativeCues: buildNativeCues(chosen.nativeSegments, captured, { preserveTimestampMap })
+        nativeCues: visibleNativeCues.length
+          ? visibleNativeCues
+          : (chosen.nativeCues?.length
+            ? chosen.nativeCues
+            : buildNativeCues(chosen.nativeSegments, captured, { preserveTimestampMap }))
       };
     } catch (error) {
       errors.push(`${shortUrl(chosen.url)}：${error.message}`);
@@ -333,7 +369,8 @@
         return {
           cues: list,
           source: "Netflix timed-text metadata",
-          language: picked.language || wanted
+          language: picked.language || wanted,
+          nativeCues: collectVisibleNativeCues(video, null, picked.language || wanted)
         };
       } catch (error) {
         errors.push(`Netflix ${picked.language || wanted} 字幕：${error.message}`);
@@ -365,7 +402,8 @@
     return {
       cues: picked.cues,
       source: "Netflix direct subtitle response",
-      language: picked.language || wanted
+      language: picked.language || wanted,
+      nativeCues: collectVisibleNativeCues(video, null, picked.language || wanted)
     };
   }
 
@@ -496,6 +534,8 @@
   let lastShown = { text: "", nativeText: "", at: -Infinity };
   // 畫面上這句原生字幕「第一次出現」的播放時間。對時要用它，不能用「現在」。
   let nativeShown = { text: "", at: 0 };
+  let previousRenderTime = NaN;
+  let previousRenderWallTime = 0;
 
   function normalizeForMatch(value) {
     return String(value ?? "")
@@ -528,10 +568,16 @@
     const target = appearedSeconds + currentOffset;
     let best = null;
     let bestDistance = Infinity;
+    const exactMatches = list.filter((cue) => normalizeForMatch(cue.text) === wanted);
     for (const cue of list) {
-      if (!matchesCueText(normalizeForMatch(cue.text), wanted)) continue;
+      const normalized = normalizeForMatch(cue.text);
+      const shortExact = normalized === wanted
+        && wanted.replace(/\s+/g, "").length < 10
+        && exactMatches.length === 1;
+      const isShort = wanted.replace(/\s+/g, "").length < 10;
+      if (isShort ? !shortExact : !matchesCueText(normalized, wanted)) continue;
       const distance = Math.abs(cue.start - target);
-      if (distance < bestDistance) {
+      if (distance <= (shortExact ? 2 : 30) && distance < bestDistance) {
         bestDistance = distance;
         best = cue;
       }
@@ -544,6 +590,16 @@
     if (!video) return;
     const caption = streaming?.readNativeCaption(document, location.hostname);
     const nativeText = caption?.text ?? "";
+    const now = Date.now();
+    const expected = Math.max(0, (now - previousRenderWallTime) / 1000) * (video.playbackRate || 1);
+    const jumped = video.seeking || !Number.isFinite(previousRenderTime) ||
+      Math.abs(video.currentTime - previousRenderTime - expected) > 1.5;
+    previousRenderTime = video.currentTime;
+    previousRenderWallTime = now;
+    if (jumped) {
+      lastShown = { text: "", nativeText: "", at: -Infinity };
+      nativeShown = { text: nativeText, at: video.currentTime };
+    }
 
     // 換句的那一刻才重新對時，而且是每次換句都重算，這樣起步時對得不準
     // 也會在下一句自動修正。
@@ -560,7 +616,7 @@
     const fresh = Boolean(text);
 
     if (!text && nativeText && nativeText === lastShown.nativeText && lastShown.text
-      && video.currentTime - lastShown.at <= CARRY_OVER_SECONDS) {
+      && video.currentTime >= lastShown.at && video.currentTime - lastShown.at <= CARRY_OVER_SECONDS) {
       text = lastShown.text;
     }
     if (!text) {
@@ -598,6 +654,18 @@
 
     const sniffed = await askPage({ type: "IMMERSEFREE_REQUEST_STREAM_TRACKS" }, 8000);
     if (!sniffed) throw new Error("頁面橋接沒有回應，請重新整理頁面再試一次");
+    if (isNetflixSite() && sniffed.metadata?.length) {
+      const learn = await fromNetflixMetadata(sniffed.metadata, learnLanguage, video);
+      if (learn?.cues?.length) {
+        const help = await fromNetflixMetadata(sniffed.metadata, helpLanguage, video);
+        return {
+          pairs: pairByOverlap(learn.cues, help?.cues ?? []),
+          learnLanguage: learn.language || learnLanguage,
+          helpLanguage: help?.cues?.length ? help.language : "",
+          duration: video.duration || 0
+        };
+      }
+    }
     if (!sniffed.manifests?.length) {
       throw new Error("還沒攔到播放清單。請先讓影片播一下，再按一次影集學習。");
     }
@@ -642,31 +710,7 @@
 
   // 兩條軌的斷句不會完全一致，所以不是逐句對號，而是找時間重疊最多的那句。
   function pairByOverlap(source, translation) {
-    const pairs = [];
-    let cursor = 0;
-    for (const line of source) {
-      // 兩條軌都已排序，游標只需前進，不必每次從頭找。
-      while (cursor > 0 && translation[cursor - 1]?.end > line.start) cursor -= 1;
-      while (cursor < translation.length && translation[cursor].end < line.start) cursor += 1;
-      let best = "";
-      let bestOverlap = 0;
-      for (let i = cursor; i < translation.length; i += 1) {
-        const other = translation[i];
-        if (other.start > line.end) break;
-        const overlap = Math.min(line.end, other.end) - Math.max(line.start, other.start);
-        if (overlap > bestOverlap) {
-          bestOverlap = overlap;
-          best = other.text;
-        }
-      }
-      pairs.push({
-        start: line.start,
-        end: line.end,
-        source: line.text,
-        translation: best
-      });
-    }
-    return pairs;
+    return format.pairByOverlap(source, translation);
   }
 
   // ---------------------------------------------------------------- 對外
@@ -708,6 +752,7 @@
     cues = resolved.cues;
     nativeCues = resolved.nativeCues ?? [];
     timeOffset = 0;
+    previousRenderTime = NaN;
     lastShown = { text: "", nativeText: "", at: -Infinity };
     nativeShown = { text: "", at: 0 };
     restoreTextTrack = resolved.restore;
@@ -732,6 +777,7 @@
     cues = [];
     nativeCues = [];
     timeOffset = 0;
+    previousRenderTime = NaN;
     lastShown = { text: "", nativeText: "", at: -Infinity };
     nativeShown = { text: "", at: 0 };
     restoreTextTrack?.();

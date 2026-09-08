@@ -5,6 +5,7 @@ const { resolveLevel } = globalThis.ImmerseFreeStudyCore;
 
 const els = {
   episode: document.querySelector("#episode"),
+  retrySource: document.querySelector("#retry-source"),
   lineCount: document.querySelector("#line-count"),
   setup: document.querySelector("#setup"),
   preview: document.querySelector("#level-preview"),
@@ -24,6 +25,7 @@ const els = {
 const FIELDS = { toeic: "#field-toeic", ielts: "#field-ielts", gept: "#field-gept" };
 let episode = null;
 let generated = null;
+let activeRequestId = "";
 
 for (const input of document.querySelectorAll('input[name="kind"]')) {
   input.addEventListener("change", onKindChange);
@@ -33,6 +35,10 @@ for (const id of ["#toeic", "#ielts", "#gept"]) {
   document.querySelector(id).addEventListener("change", updatePreview);
 }
 els.generate.addEventListener("click", generate);
+els.retrySource.addEventListener("click", async () => {
+  els.retrySource.disabled = true;
+  try { await load(); updatePreview(); } finally { els.retrySource.disabled = false; }
+});
 els.copy.addEventListener("click", copyAsText);
 els.regenerate.addEventListener("click", () => {
   els.result.hidden = true;
@@ -40,7 +46,7 @@ els.regenerate.addEventListener("click", () => {
 });
 
 api.runtime.onMessage.addListener((message) => {
-  if (message?.type !== "IMMERSEFREE_STUDY_PROGRESS") return false;
+  if (message?.type !== "IMMERSEFREE_STUDY_PROGRESS" || message.requestId !== activeRequestId) return false;
   els.progress.hidden = false;
   els.progressFill.style.width = `${Math.round((message.done / Math.max(1, message.total)) * 100)}%`;
   setStatus(`正在整理第 ${message.done} / ${message.total} 批…`, "pending");
@@ -51,15 +57,37 @@ await load();
 onKindChange();
 
 async function load() {
-  const stored = await api.storage.local.get("studyEpisode");
-  episode = stored?.studyEpisode ?? null;
+  els.retrySource.hidden = true;
+  els.generate.disabled = true;
+  const sourceTab = Number(new URL(location.href).searchParams.get("sourceTab"));
+  try {
+    if (Number.isSafeInteger(sourceTab) && sourceTab > 0) {
+      setStatus("正在取得影片字幕，請保留原本的影片分頁。", "pending");
+      const reply = await api.tabs.sendMessage(sourceTab, { type: "IMMERSEFREE_COLLECT_STUDY" });
+      if (!reply?.ok) throw new Error(reply?.error ?? "字幕取得失敗，請重新整理影片後再試");
+      episode = {title: reply.title ?? "", url: reply.url ?? "", pairs: reply.pairs ?? [], learnLanguage: reply.learnLanguage ?? "", helpLanguage: reply.helpLanguage ?? "", collectedAt: Date.now()};
+      if (!episode.pairs.some((pair) => String(pair.source ?? "").trim())) throw new Error("影片沒有可用的原文字幕，請先開啟播放器字幕再試");
+      await api.storage.local.set({studyEpisode: episode});
+      setStatus("字幕已就緒，選擇程度後即可生成教材。", "success");
+    } else {
+      const stored = await api.storage.local.get("studyEpisode");
+      episode = stored?.studyEpisode ?? null;
+    }
+  } catch (error) {
+    episode = null;
+    els.retrySource.hidden = false;
+    els.episode.textContent = "字幕尚未就緒";
+    setStatus(error.message, "error");
+    return;
+  }
   if (!episode?.pairs?.length) {
     els.episode.textContent = "沒有可用的字幕資料";
-    setStatus("請回到 Disney+ 或 Netflix 的播放頁面，按擴充功能裡的「影集學習」重新抓一次。", "error");
+    setStatus("請回到 YouTube、Disney+ 或 Netflix 的影片頁面，按「影片學習」取得字幕。", "error");
     return;
   }
   els.episode.textContent = episode.title || "這一集";
-  els.lineCount.textContent = `${episode.pairs.length} 句　${episode.learnLanguage} → ${episode.helpLanguage}`;
+  const languages = [episode.learnLanguage, episode.helpLanguage].filter(Boolean).join(" / ");
+  els.lineCount.textContent = `${episode.pairs.length} 句${languages ? `　${languages}` : ""}`;
   els.generate.disabled = false;
 }
 
@@ -101,12 +129,13 @@ function updatePreview() {
 async function generate() {
   const profileInput = currentProfileInput();
   if (!resolveLevel(profileInput)) return;
+  activeRequestId = crypto.randomUUID();
   els.generate.disabled = true;
   els.progress.hidden = false;
   els.progressFill.style.width = "0%";
   setStatus("正在送出第一批…", "pending");
   try {
-    const reply = await api.runtime.sendMessage({ type: "IMMERSEFREE_STUDY_GENERATE", profile: profileInput });
+    const reply = await api.runtime.sendMessage({ type: "IMMERSEFREE_STUDY_GENERATE", profile: profileInput, episode, requestId: activeRequestId });
     if (!reply?.ok) throw new Error(reply?.error ?? "生成失敗");
     generated = reply;
     render(reply);

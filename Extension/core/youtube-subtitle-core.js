@@ -13,29 +13,44 @@
     linebreak.renderLines(node, text, { maxCharsPerLine, maxLines });
   }
 
-  function extractCaptionTrack(source, sourceLanguage = "auto") {
+  function extractCaptionTracks(source) {
     const response = typeof source === "string" ? extractPlayerResponse(source) : source;
-    const tracks = response?.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? [];
-    if (!tracks.length) return undefined;
+    const renderer = response?.captions?.playerCaptionsTracklistRenderer;
+    const audio = renderer?.audioTracks?.[Number(renderer.defaultAudioTrackIndex) || 0];
+    const defaultIndex = Number(audio?.defaultCaptionTrackIndex);
+    return (renderer?.captionTracks ?? []).map((track, index) => ({ ...track, isDefault: Number.isInteger(defaultIndex) && index === defaultIndex }));
+  }
+
+  function pickCaptionTrack(tracks, sourceLanguage = "auto", options = {}) {
+    const list = Array.isArray(tracks) ? tracks : [];
+    if (!list.length) return undefined;
     const requested = normalizeLanguage(sourceLanguage);
     if (requested && requested !== "auto") {
-      const exact = tracks.find((track) => normalizeLanguage(track.languageCode) === requested);
+      const exact = list.find((track) => normalizeLanguage(track.languageCode) === requested);
       if (exact) return exact;
-      const family = tracks.find((track) => normalizeLanguage(track.languageCode).split("-")[0] === requested.split("-")[0]);
+      const family = list.find((track) => normalizeLanguage(track.languageCode).split("-")[0] === requested.split("-")[0]);
       if (family) return family;
+      if (options.fallback === false) return undefined;
     }
+    if (options.fallback === false) return undefined;
     // 沒指定原文語言時，不能拿「第一個非 asr 軌」：YouTube 自動配音的影片會把
     // 幾十種語言的字幕軌一起列出來，且按語言代碼排序——阿拉伯文（ar）永遠第一，
     // 結果就是拿阿拉伯文當原文去翻。原始語言的判準依序是：
     //   1. 預設音軌所指的預設字幕軌（YouTube 自己標的「這支影片的原文字幕」）
     //   2. asr（自動產生）軌——語音辨識一定是講者的原始語言
     //   3. 才退回清單第一個
-    const renderer = response?.captions?.playerCaptionsTracklistRenderer;
-    const audioTracks = renderer?.audioTracks ?? [];
-    const defaultAudio = audioTracks[Number(renderer?.defaultAudioTrackIndex) || 0];
+    const renderer = options.renderer ?? {};
+    const audioTracks = renderer.audioTracks ?? [];
+    const defaultAudio = audioTracks[Number(renderer.defaultAudioTrackIndex) || 0];
     const defaultIndex = Number(defaultAudio?.defaultCaptionTrackIndex);
-    if (Number.isInteger(defaultIndex) && tracks[defaultIndex]) return tracks[defaultIndex];
-    return tracks.find((track) => track.kind === "asr") ?? tracks[0];
+    if (Number.isInteger(defaultIndex) && list[defaultIndex]) return list[defaultIndex];
+    return list.find((track) => track.isDefault) ?? list.find((track) => track.kind === "asr") ?? list[0];
+  }
+
+  function extractCaptionTrack(source, sourceLanguage = "auto") {
+    const response = typeof source === "string" ? extractPlayerResponse(source) : source;
+    const renderer = response?.captions?.playerCaptionsTracklistRenderer;
+    return pickCaptionTrack(renderer?.captionTracks, sourceLanguage, { renderer });
   }
 
   function extractPlayerResponse(source) {
@@ -89,6 +104,7 @@
         text: cleanText((event.segs ?? []).map((segment) => segment.utf8 ?? "").join(""))
       }))
       .filter((cue) => cue.text && cue.text !== "\n")
+      .sort((a, b) => a.startMs - b.startMs)
       .filter((cue, index, cues) => index === 0 || cue.text !== cues[index - 1].text || cue.startMs !== cues[index - 1].startMs);
 
     return raw.map((cue, index) => {
@@ -97,7 +113,7 @@
       const endMs = cue.durationMs > 0
         ? durationEnd
         : (nextStart && nextStart > cue.startMs ? nextStart : cue.startMs + 2500);
-      return { startMs: cue.startMs, endMs, text: cue.text };
+      return { startMs: cue.startMs, endMs: nextStart > cue.startMs ? Math.min(endMs, nextStart) : endMs, text: cue.text };
     });
   }
 
@@ -365,7 +381,7 @@
   }
 
   function normalizeLanguage(value) {
-    return String(value ?? "").trim().replace("_", "-").toLowerCase();
+    return String(value ?? "").trim().replace(/_/g, "-").toLowerCase();
   }
 
   function cleanText(value) {
@@ -379,8 +395,10 @@
   const youtubeSubtitles = Object.freeze({
     buildBufferedCuePlan,
     buildTimedTextUrl,
+    extractCaptionTracks,
     extractInnertubeApiKey,
     extractCaptionTrack,
+    pickCaptionTrack,
     findCueIndex,
     isYouTubeAdVisible,
     isYouTubeVideoUrl,

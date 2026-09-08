@@ -6,6 +6,17 @@
     return global.ImmerseFreeBridgeCore.bridgeFetch(url, options, settings);
   }
 
+  // 網路請求連同回應內容都有期限；只停止等待不能中止卡住的連線。
+  function providerFetch(url, options = {}) {
+    const signal = options.signal ?? AbortSignal.timeout(120_000);
+    return fetch(url, { ...options, signal }).catch((error) => {
+      if (error?.name === "TimeoutError" || signal.aborted && signal.reason?.name === "TimeoutError") {
+        throw providerError("翻譯服務超過 120 秒沒有回應，請稍後重試或切換模型", PROVIDER_ERROR_CODES.TIMEOUT);
+      }
+      throw error;
+    });
+  }
+
   let geminiKeyCursor = 0;
   const geminiKeyCooldowns = new Map();
   // 全域節流：兩個請求的「起跑」至少隔 1200ms（約 50 次/分）。九把輪替下
@@ -311,8 +322,8 @@
     }
   }
 
-  // 注意：這裡只是「不再等下去」，底層的 fetch 不會真的被中止（bridge-core 有
-  // 自己的 AbortController，HTTPS 那兩條沒有）。逾時的意義是讓轉移層能換下一個
+  // 池層期限讓轉移層換下一個引擎。網路層另由 providerFetch 與 bridge-core
+  // 各自中止超時連線；此層仍不向底層傳送取消訊號。逾時的意義是讓轉移層能換下一個
   // 引擎，而不是讓整批翻譯陪著卡住的引擎一起死。
   function withProviderTimeout(promise, profile) {
     if (!(profile.timeoutMs > 0)) return promise;
@@ -914,7 +925,7 @@
       const key = nextGeminiKey(keys);
       if (!key) break;
       await acquireGeminiSlot();
-      const response = await fetch(url, {
+      const response = await providerFetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": key },
         body
@@ -974,7 +985,7 @@
       const key = nextGeminiKey(keys);
       if (!key) break;
       await acquireGeminiSlot();
-      const response = await fetch(url, {
+      const response = await providerFetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": key },
         body
@@ -1029,7 +1040,7 @@
     const usesResponses = settings.opencodeProtocol === "responses";
     const headers = { "Content-Type": "application/json" };
     if (settings.opencodeApiKey) headers.Authorization = `Bearer ${settings.opencodeApiKey}`;
-    const response = await fetch(`${base}/${usesResponses ? "responses" : "chat/completions"}`, {
+    const response = await providerFetch(`${base}/${usesResponses ? "responses" : "chat/completions"}`, {
       method: "POST",
       headers,
       body: JSON.stringify(usesResponses
@@ -1115,7 +1126,7 @@
         input: prompt
       }
       : chatBody);
-    const send = (apiKey) => fetch(url, {
+    const send = (apiKey) => providerFetch(url, {
       method: "POST",
       headers: apiKey
         ? { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` }
@@ -1180,7 +1191,7 @@
   async function translateWithCustomApi(segments, settings, context) {
     if (!settings.customModel) throw providerError("尚未選擇自訂 API 的模型", PROVIDER_ERROR_CODES.NOT_CONFIGURED);
     const prompt = buildTranslationPrompt(segments, settings, context);
-    const response = await fetch(customApiEndpoint(settings, "chat/completions"), {
+    const response = await providerFetch(customApiEndpoint(settings, "chat/completions"), {
       method: "POST",
       headers: customApiHeaders(settings),
       body: JSON.stringify({
@@ -1204,7 +1215,7 @@
 
   async function completeWithCustomApi(prompt, settings) {
     if (!settings.customModel) throw providerError("尚未選擇自訂 API 的模型", PROVIDER_ERROR_CODES.NOT_CONFIGURED);
-    const response = await fetch(customApiEndpoint(settings, "chat/completions"), {
+    const response = await providerFetch(customApiEndpoint(settings, "chat/completions"), {
       method: "POST",
       headers: customApiHeaders(settings),
       body: JSON.stringify({
@@ -1219,7 +1230,7 @@
   // OpenAI 相容服務都有 GET /models，拿來把模型清單填進選項頁，
   // 使用者就不必手打模型 id（也才看得到自己這把金鑰能用哪些模型）。
   async function listCustomApiModels(settings) {
-    const response = await fetch(customApiEndpoint(settings, "models"), {
+    const response = await providerFetch(customApiEndpoint(settings, "models"), {
       headers: customApiHeaders(settings)
     });
     const payload = await readJsonResponse(response, "自訂 API");
@@ -1251,7 +1262,12 @@
   }
 
   async function readJsonResponse(response, provider) {
-    const text = await response.text();
+    let text;
+    try { text = await response.text(); }
+    catch (error) {
+      if (error?.name === "TimeoutError") throw providerError("翻譯服務回應逾時，請稍後重試或切換模型", PROVIDER_ERROR_CODES.TIMEOUT);
+      throw error;
+    }
     let payload;
     try {
       payload = JSON.parse(text);
