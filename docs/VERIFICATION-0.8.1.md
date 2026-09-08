@@ -13,7 +13,10 @@ This document distinguishes automated checks from observations on real sites. It
 - Antigravity：本機橋接服務已成功翻譯樣本。原生測試工具的讀值與可見選單不一致，因此 Chrome 的 Antigravity 路徑未驗證，不能據此判定程式切回引擎。後續一輪 YouTube 顯示翻譯失敗，但未取得可歸因引擎的錯誤。
 - Unsigned Safari Release build: succeeded locally. This verifies compilation, not Safari playback.
 - Safari 未簽署正式建置：本機成功。這證明可編譯，不代表已驗證 Safari 播放。
-- Netflix / Disney+ live playback, Windows UI and Safari live playback: pending validation.
-- Netflix、Disney+ 真實播放、Windows 介面與 Safari 真實播放：尚待驗證。
+- Netflix / Disney+ live playback: unverified because the available test sessions had no playable access. Windows UI and Safari live playback remain unverified.
+- Netflix、Disney+ 真實播放：測試環境無可播放內容，未驗證。Windows 介面與 Safari 真實播放亦未驗證。
 
 Updated 2026-09-08. CI build results are tracked on the repository's Actions page.
+
+The [GitHub Actions run for 5bc2367](https://github.com/chang416/ImmerseFree/actions/runs/34177287510) passed all four jobs: macOS tests, Windows tests, unsigned Safari build, and PowerShell/Windows installer validation.
+該次 GitHub 自動檢查四項全數通過，涵蓋 macOS 與 Windows 測試、Safari 建置及 Windows 安裝程式檢查。
