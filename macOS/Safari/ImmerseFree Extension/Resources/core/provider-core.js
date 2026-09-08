@@ -452,8 +452,14 @@
     const list = (Array.isArray(terms) ? terms : [])
       .filter((term) => term && term.source && term.target);
     if (!list.length) return [];
-    const lines = [heading];
-    for (const term of list) lines.push(`  ${term.source} -> ${term.target}`);
+    const fixed = list.filter((term) => term.origin !== "preset");
+    const suggestions = list.filter((term) => term.origin === "preset");
+    const lines = fixed.length ? [heading] : [];
+    for (const term of fixed) lines.push(`  ${term.source} -> ${term.target}`);
+    if (suggestions.length) {
+      lines.push("Built-in terminology suggestions (not fixed translations). Use only when the meaning fits the surrounding sentence and document topic. For ambiguous words, prefer the contextual meaning; for example language acquisition means 語言習得, not corporate acquisition/併購.");
+      for (const term of suggestions) lines.push(`  ${term.source} -> ${term.target}`);
+    }
     return lines;
   }
 
@@ -562,7 +568,8 @@
           .slice(0, 40)
           .map((term) => ({
             source: String(term?.source ?? "").trim().slice(0, 80),
-            target: String(term?.target ?? "").trim().slice(0, 80)
+            target: String(term?.target ?? "").trim().slice(0, 80),
+            origin: term?.origin === "preset" ? "preset" : "user"
           }))
           .filter((term) => term.source && term.target)
         : [],

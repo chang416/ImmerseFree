@@ -20,3 +20,6 @@ Updated 2026-09-08. CI build results are tracked on the repository's Actions pag
 
 The [GitHub Actions run for 5bc2367](https://github.com/chang416/ImmerseFree/actions/runs/34177287510) passed all four jobs: macOS tests, Windows tests, unsigned Safari build, and PowerShell/Windows installer validation.
 該次 GitHub 自動檢查四項全數通過，涵蓋 macOS 與 Windows 測試、Safari 建置及 Windows 安裝程式檢查。
+
+A recording rehearsal exposed a built-in glossary error: “language acquisition” was forced into a financial translation. The fix preserves preset origin through prompts and keeps custom terms fixed. The updated local suite passes 36 tests. Live Chrome verification of this follow-up fix is pending extension reload; earlier CI and playback evidence above applies to the earlier code revision.
+錄影彩排發現預設詞庫把「language acquisition」強制套為金融用語。修正後保留預設詞來源並改為語境建議，自訂詞仍固定。更新後本機 36 項測試通過。此次追加修正尚待擴充功能重載後實測；上方網站與自動建置證據對應較早版本。

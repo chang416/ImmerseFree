@@ -1,7 +1,7 @@
 (function initializePageTranslationCache(global) {
-  // 2 = 加入 glossaryHash 維度之後的鍵格式。版本一跳，hydrate 就會整份丟掉
+  // 3 = 預設術語改為依語境建議，避免重用舊版強制套詞的譯文。版本一跳，hydrate 就會整份丟掉
   // 舊快取——舊的 key 用新公式再也算不出來，留著只是佔配額。
-  const VERSION = 2;
+  const VERSION = 3;
   const PAGE_TRANSLATION_CACHE_STORAGE_KEY = "immerseFreePageTranslationCache";
   const KEY_PATTERN = new RegExp(`^p${VERSION}:[0-9a-f]{16}$`, "i");
   const DEFAULT_LIMITS = Object.freeze({
@@ -69,7 +69,7 @@
       const source = normalizePageSource(item?.source ?? "");
       const target = normalizePageSource(item?.target ?? "");
       if (!source || !target) continue;
-      unique.set(`${source.toLowerCase()}\u241f${target}`, `${source}\u241f${target}`);
+      unique.set(`${source.toLowerCase()}\u241f${target}`, `${source}\u241f${target}\u241f${item?.origin === "preset" ? "suggested" : "fixed"}`);
     }
     return [...unique.values()].sort();
   }

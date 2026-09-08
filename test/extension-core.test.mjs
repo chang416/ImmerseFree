@@ -166,3 +166,20 @@ test("PDF errors are converted to actionable messages", () => {
   assert.match(pdfOpenErrorMessage({ name: "PasswordException" }), /密碼/);
   assert.match(pdfTranslationErrorMessage(new Error("HTTP 429")), /速率限制/);
 });
+
+
+test("built-in terminology remains contextual while user terminology stays fixed", () => {
+  const context = {mode: "page", title: "Language acquisition", glossary: [
+    {source: "acquisition", target: "併購", origin: "preset"},
+    {source: "ImmerseFree", target: "ImmerseFree", origin: "global"}
+  ]};
+  const normalized = providerCore.normalizeContext(context);
+  assert.equal(normalized.glossary[0].origin, "preset");
+  assert.equal(normalized.glossary[1].origin, "user");
+  const prompt = providerCore.buildTranslationPrompt(["Language acquisition is a process."], settingsCore.DEFAULT_SETTINGS, context);
+  const advisory = prompt.indexOf("Built-in terminology suggestions");
+  assert.ok(advisory > 0);
+  assert.ok(prompt.indexOf("acquisition -> 併購") > advisory);
+  assert.ok(prompt.indexOf("ImmerseFree -> ImmerseFree") < advisory);
+  assert.match(prompt, /not fixed translations/);
+});

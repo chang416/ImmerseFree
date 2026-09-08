@@ -940,7 +940,7 @@ async function attachDocumentGlossary(context, settings, segments) {
   const [globalTerms, presetTerms] = [await readGlobalTerms(), presetTermsFor(settings)];
   if (!globalTerms.length && !presetTerms.length) return context;
   const matched = glossary.selectTermsForTexts({ globalTerms, presetTerms, texts: segments });
-  if (matched.length) context.glossary = matched.map((term) => ({ source: term.source, target: term.target }));
+  if (matched.length) context.glossary = matched.map((term) => ({ source: term.source, target: term.target, origin: term.origin }));
   return context;
 }
 
@@ -973,7 +973,7 @@ function attachSubtitleGlossary(context, settings, segments) {
   // 這裡只把 origin=preset 的那幾條補上去，carried 一條都不動、順序也不動。
   const additions = matched.filter((term) => term.origin === "preset");
   if (!additions.length) return context;
-  context.glossary = [...carried, ...additions.map((term) => ({ source: term.source, target: term.target }))]
+  context.glossary = [...carried, ...additions.map((term) => ({ source: term.source, target: term.target, origin: "preset" }))]
     .slice(0, glossary.MAX_PROMPT_TERMS);
   return context;
 }

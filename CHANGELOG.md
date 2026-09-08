@@ -4,6 +4,9 @@
 
 ### Improved｜改善
 
+- Built-in glossary entries are now contextual suggestions, while user terminology remains fixed. Old forced-term translations are invalidated.
+- 預設詞庫改為依語境採用的建議，使用者自訂詞仍優先固定。舊版強制套詞的譯文不再重用。
+
 - Reworked the silver popup layout, control spacing, press feedback and keyboard focus. Model discovery no longer blocks the main controls.
 - 重新整理銀灰面板、控制項間距、按壓回饋與鍵盤焦點。模型清單載入不再阻塞主要操作。
 - Video study now accepts YouTube captions and can build notes from an original-language track alone. Requests remain tied to the source video when tabs change.
