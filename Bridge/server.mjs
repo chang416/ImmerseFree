@@ -100,17 +100,23 @@ const server = http.createServer(async (request, response) => {
   try {
     const origin = request.headers.origin;
     const url = new URL(request.url || "/", `http://${HOST}:${PORT}`);
+    const hasExtensionHeader = request.headers["x-immersefree"] === "translation-extension-v1";
+    const noOriginExtensionRequest = hasExtensionHeader && (
+      (request.method === "GET" && url.pathname === "/models")
+      || (request.method === "POST" && new Set(["/translate", "/complete", "/ocr", "/vision-ocr"]).has(url.pathname))
+    );
     // 安裝腳本與登入啟動器用 curl／Invoke-RestMethod 探活，那些請求沒有 Origin，
     // 所以 /health 保留「無 Origin 也能打」，但只回最小的存活訊號——不洩漏平台、
-    // 版本或已安裝的引擎清單，避免變成本機指紋來源。其餘端點一律要求合法 origin。
+    // 版本或已安裝的引擎清單，避免變成本機指紋來源。Safari 的背景頁在部分版本
+    // 不會送 Origin，這時只接受帶擴充功能標頭的固定端點，避免放寬整個本機服務。
     if (!origin) {
       if (request.method === "GET" && url.pathname === "/health") {
         return sendJson(response, 200, { ok: true });
       }
-      return sendJson(response, 403, { error: "Origin not allowed" });
+      if (!noOriginExtensionRequest) return sendJson(response, 403, { error: "Origin not allowed" });
     }
-    if (!isAllowedOrigin(origin)) return sendJson(response, 403, { error: "Origin not allowed" });
-    applyCors(request, response);
+    if (origin && !isAllowedOrigin(origin)) return sendJson(response, 403, { error: "Origin not allowed" });
+    if (origin) applyCors(request, response);
     if (request.method === "OPTIONS") return response.writeHead(204).end();
     if (request.method === "GET" && url.pathname === "/health") {
       return sendJson(response, 200, {

@@ -1022,7 +1022,11 @@ async function getModelCatalog(refresh = false) {
   const suffix = refresh ? "?refresh=1" : "";
   const response = await bridgeFetch(
     `${settings.bridgeBaseUrl.replace(/\/$/, "")}/models${suffix}`,
-    undefined,
+    {
+      // Safari 的背景頁在部分版本不會送 Origin，Bridge 用這個固定標頭
+      // 辨認這是擴充功能的模型清單請求，不必放寬所有無 Origin 的連線。
+      headers: { "X-ImmerseFree": "translation-extension-v1" }
+    },
     settings
   );
   if (!response.ok) throw diagnostics.diagnosticError(`本機模型服務無法連線（HTTP ${response.status}）`, "CATALOG_FETCH_FAILED", { httpStatus: response.status });
